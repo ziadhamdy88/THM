@@ -3,7 +3,7 @@
 ```
 nmap -sS -p- -vv -o nmap_scan.txt 10.10.51.67
 ```
-> The above scan took way too long.
+> - The above scan took way too long.
 > - Performing an OS, version, script scan, and trace route *-A* with timing set with *-T4* on all ports.
 ```
 nmap -A -T4 -p- -vv -o nmap_scan.txt 10.10.51.67
@@ -13,11 +13,11 @@ nmap -A -T4 -p- -vv -o nmap_scan.txt 10.10.51.67
 ![](recon_3.png)
 
 #### Interesting findings
->- 	*MSRDP* running on port `3389`
->- 	*SMB* running on port `139, 445`
->- 	*Icecast* running on port `8000`
->- 	*CommonName* of *DARK-PC*
->- 	Windows 7 Professional 7601
+>	- *MSRDP* running on port `3389`
+> - *SMB* running on port `139, 445`
+> - *Icecast* running on port `8000`
+> - *CommonName* of *DARK-PC*
+> -	Windows 7 Professional 7601
 
 
 
@@ -64,4 +64,3 @@ use exploit/windows/local/bypassuac_eventvwr
 >	- Modify timestamps of files on the system using `timestomp`.
 >	- Mimikatz allows us to create a `golden ticket`, which allows us to authenticate anywhere with ease, use `golden_ticket_create`.
 >	- `run post/windows/manage/enable_rdp` to remote into machines and view them as their users do.![](post_exploit_1.png)
->
