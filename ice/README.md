@@ -1,10 +1,10 @@
-## ==**Recon Stage**==
+## **Recon Stage**
 > - Perform SYN scan on all ports.
 ```
 nmap -sS -p- -vv -o nmap_scan.txt 10.10.51.67
 ```
 > The above scan took way too long.
-> - Performing an OS, version, script scan, and trace route *==-A==* with timing set with *==-T4==* on all ports.
+> - Performing an OS, version, script scan, and trace route *-A* with timing set with *-T4* on all ports.
 ```
 nmap -A -T4 -p- -vv -o nmap_scan.txt 10.10.51.67
 ```
