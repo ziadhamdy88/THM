@@ -3,9 +3,9 @@
 ```
 nmap -sS -p- -vv 10.10.217.93
 ```
->	  ![](nmap-out.png)
->	- Accessing the website on `10.10.217.93:65000`.![](hidden-webapp.png)
->	- Using `gobuster dir -u http://10.10.217.93:65000/ -w /usr/share/dirb/wordlists/common.txt -x "php"` to search for `.php` files.![](dirb-php-out.png)
+> - ![](nmap-out.png)
+> - Accessing the website on `10.10.217.93:65000`.![](hidden-webapp.png)
+> - Using `gobuster dir -u http://10.10.217.93:65000/ -w /usr/share/dirb/wordlists/common.txt -x "php"` to search for `.php` files.![](dirb-php-out.png)
 ## **Gaining Access**
 >	- Going to `/uploads.php` to test the upload filters and upload the reverse shell.
 >	- Adding `.jpg.php` to the end of the file shows invalid. The web application seems to use client-side filtering.![](upload-filtered.png)
