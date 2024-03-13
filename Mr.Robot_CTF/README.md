@@ -1,5 +1,3 @@
-https://tryhackme.com/room/mrrobot
-
 ## **Scanning**
 >	- Perform `nmap` scan on target machine using these options:
 >		- `-sC` for the default script.
