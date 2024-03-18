@@ -4,7 +4,7 @@
 ```
 nmap -sV 10.10.234.221
 ```
->	![](nmap-out.png)
+>	- ![](nmap-out.png)
 >	- An NFS service is running, use `showmount -e 10.10.234.221` to view all shareable NFS directories.![](showmount-dirs.png)
 >	- Mount the found directory to a local directory for viewing using `sudo mount 10.10.234.221:/opt/files ./target-nfs/`.![](target-mount.png)
 >	- The password can be found.![](creds.png)
