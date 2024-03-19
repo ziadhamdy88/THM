@@ -10,7 +10,7 @@ nmap -sV 10.10.23.187
 >	- Use `gobuster dir -u http://10.10.23.187:80/ -w /usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt` to search for hidden directories.
 >	- Nothing interesting found.
 >	- Inspect the source code, a script can be seen.![](web-script.png)
->	- Open up `burpsuite` to intercept and manipulate traffic.![[burpsuite-1.png]]
+>	- Open up `burpsuite` to intercept and manipulate traffic.![](burpsuite-1.png)
 >	- Changing this request to `GET` the `/etc/shadow` file.![](burpsuite-2.png)
 >	- ![](burpsuite-3.png)
 >	- Charlie's hash can be found `charlie:$6$oHymLspP$wTqsTmpPkz.u/CQDbheQjwwjyYoVN2rOm6CDu0KDeq8mN4pqzuna7OX.LPdDPCkPj7O9TB0rvWfCzpEkGOyhL.:18243:0:99999:7:::`
