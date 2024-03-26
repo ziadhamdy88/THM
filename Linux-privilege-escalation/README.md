@@ -41,4 +41,10 @@
 >	- Flag can be found at `/home/ubuntu/flag5.txt`.![](flag-5.png)
 >	- Matt's hash can be found at `/etc/shadow`. ![](cron-matt-hash.png)
 >	- Using `john` to crack the hash.![](cron-matt-pass.png)
->	- 
+### *PATH*
+>	- Using `find / -writable 2>/dev/null` to get the writable directories.
+>	- The above command prints out a lot of noise, limiting search output to `home` directory according to the hint.![](path-writable-dirs.png)
+>	- Putting the `/home/murdoch` to the PATH variable using `expot PATH=/home/murdoch/:$PATH`.![](path-updated-variable.png)
+>	- Create a file named `thm` in `/home/murdoch` that opens a root shell, change the permissions on the file using `chmod 777 thm`.
+>	- Execute the binary `test` that runs the `thm` file.![](path-root-shell.png)
+>	- Search for the flag and `cat` it.![](flag-6.png)
