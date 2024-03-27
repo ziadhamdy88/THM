@@ -48,3 +48,12 @@
 >	- Create a file named `thm` in `/home/murdoch` that opens a root shell, change the permissions on the file using `chmod 777 thm`.
 >	- Execute the binary `test` that runs the `thm` file.![](path-root-shell.png)
 >	- Search for the flag and `cat` it.![](flag-6.png)
+### *NFS*
+>	- Show mountable shares using `showmount -e 10.10.1.127`.![](nfs-mountable-shares.png)
+>	- View the NFS configuration file using `cat /etc/exports`.![](nfs-config.png)
+>	- Mount `/home/ubuntu/sharedfolder` of the target to the attack machine using `mount -o rw 10.10.247.245:/home/ubuntu/sharedfolder /tmp/targetshare`.
+>	- Create an executable file that spawns a shell inside the `targetshare` directory.![](nfs-spawn-shell.png)
+>	- Compile the C program using `gcc spawn-shell.c -o spawn-shell -w`.![](nfs-spawn-shell-compiled.png)
+>	- Set the SUID bit on the file using `chmod +s spawn-shell`, the files should be located on the target machine in the `/home/ubuntu/sharefolder` directory.![](nfs-target-sharefolder.png)
+>	- Run the `spawn-shell` executable and `cat` the flag located in `/home/matt/flag7.txt`.
+>	- The flag is `THM-89384012`.
