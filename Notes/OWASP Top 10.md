@@ -1,0 +1,44 @@
+- ## Injection
+	- Exploited when user controlled input is interpreted as actual commands or parameters by the application.
+	- **Types:**
+		- *SQL Injection (SQLi):*
+			- Input passed to SQL queries.
+		- Command Injection:
+			- Input passed to system commands.
+			- When server-side code like PHP in a web application makes a system call on the hosting machine.
+			- Attacker could execute operating system commands on the server.
+			- Open a reverse shell to become the user that the web server is running as.
+			- For example `;nc -e /bin/bash`.
+			- *Blind Command Injection:*
+				- When the system command to the server doesn't return the response to the user in the HTML document.
+			- *Active Command Injection:*
+				- Return the response to the user.
+	- **Remediation:**
+		- Use an allow list where the user input is compared to a list of safe input characters, if not safe then it is rejected and the application throws an error.
+		- Stripping input where the dangerous characters are removed before the input is processed.
+- ## Broken Authentication
+	- Allow access to other users' accounts which would allow the attacker to access sensitive data.
+	- **Types:**
+		- Brute-force attacks.
+		- Use of weak credentials.
+		- Weak session cookies.
+	- **Mitigation:**
+		- Enforce strong password policies.
+		- Enforce automatic lockout after a certain number of attempts.
+		- Implement Multi Factor Authentication.
+	- **Example:**
+		- User input without sanitization, a user named "admin" exists on an application.
+		- We want to access that account, a possible exploit would be to re-register that username but with a slight modification.
+		- Use the username ` admin` (space at the beginning), fill any required inputs and submit.
+		- The new user if created will have the same right as the normal admin.
+		- The new user will also be able to see all the content presented under the user `admin`.
+- ## Sensitive Data Exposure
+	- When a web application divulges sensitive data.
+	- Often involves techniques such as Man in The Middle (MITM)
+- ## XML External Entity 
+- ## Broken Access Control
+- ## Security Misconfiguration
+- ## Cross-site Scripting
+- ## Insecure Deserialization
+- ## Components with Known Vulnerabilities
+- ## Insufficient Logging and Monitoring
