@@ -34,8 +34,44 @@
 		- The new user will also be able to see all the content presented under the user `admin`.
 - ## Sensitive Data Exposure
 	- When a web application divulges sensitive data.
-	- Often involves techniques such as Man in The Middle (MITM)
-- ## XML External Entity 
+	- Often involves techniques such as Man in The Middle (MITM), where the attacker force user connections through a device which he controls, then take advantage of weak encryption on any transmitted data to gain access to the intercepted information.
+	- Data is most probably located in a database, whether its a MySQL database or a NoSQL database which all run on a dedicated server.
+	- Databases can also be stored in files, these databases are called `flat-file`, which is much easier than setting up a full database server, used for small web applications.
+		- These files could be located under that `root` directory of the website.
+		- The simplest format of flat-file database is `sqlite` database, which can be interacted with in most programming languages, and have a client for querying them, on Kali is called `sqlite3`.
+		- Check file using `file example.db`.
+		- Access the database using `sqlite3 <database-name>`.
+		- Check tables using `.tables`.
+		- Check table information using `PRAGMA table_info(<table-name>)`.
+		- Use any `SQL` query needed.
+- ## XML External Entity (XXE)
+	- A vulnerability that abuses features of XML parser/data.
+	- Often allows an attacker to interact with any backend or external systems that the application itself can access and can allow the attacker to read the file on that system.
+	- Can also cause a DoS attack or perform SSRF inducing the web application to make requests to other applications.
+	- Can enable port scanning and lead to remote code execution.
+	- **Types:**
+		- *In-band XXE:*
+			- Attacker can receive an immediate response to the XXE payload.
+		- *Out-band/blind XXE:*
+			- No immediate response from the web application and attacker has to reflect the output of their XXE payload to some other file or their own server.
+	- **What is XML:**
+		- XML (eXtensible Markup Language) is a markup language that defines a set of rules for encoding documents in a format that is both human-readable and machine-readable.
+		- Used for storing and transporting data.
+		- Platform-independent and programming language independent.
+		- Data stored and transported using XML can be changed at any point in time without affecting the data presentation.
+		- XML allows validation using DTD (Document Type Definitions) and Schema, this validation insures that the XML document is free from any syntax error.
+		- Simplifies data sharing between various systems because of its platform-independent nature. XML data doesn't require any conversion when transferred between different systems.
+		- XML is case sensitive.
+		- **Components:**
+			- Starts with a XML Prolog. `<?xml version="1.0" encoding="UTF-8"?>`.
+			- Must contain a root element, for example:
+				- ``<?xml version="1.0" encoding="UTF-8"?>
+				  `<mail>` <--- Root element
+					`<to>falcon</to>`
+					`<from>feast</from>`
+					`<subject>About XXE</subject>`
+					`<text>Teach about XXE</text>`
+				  `</mail>`
 - ## Broken Access Control
 - ## Security Misconfiguration
 - ## Cross-site Scripting
