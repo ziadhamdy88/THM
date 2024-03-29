@@ -6,4 +6,5 @@
   - [Advent of Cyber 2019](https://tryhackme.com/room/25daysofchristmas) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/Advent-of-cyber-1-2019)
   - [Anthem](https://tryhackme.com/r/room/anthem) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/Anthem#enumeration)
   - [Linux Privilege Escalation](https://tryhackme.com/r/room/linprivesc) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/Linux-privilege-escalation#enumeration)
+  - [OhSINT](https://tryhackme.com/r/room/ohsint) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/OhSINT#osint)
 ## Rooms in the process:
