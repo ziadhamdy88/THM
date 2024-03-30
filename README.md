@@ -7,5 +7,6 @@
   - [Anthem](https://tryhackme.com/r/room/anthem) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/Anthem#enumeration)
   - [Linux Privilege Escalation](https://tryhackme.com/r/room/linprivesc) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/Linux-privilege-escalation#enumeration)
   - [OhSINT](https://tryhackme.com/r/room/ohsint) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/OhSINT#osint)
+  - [Pickle Rick](https://tryhackme.com/r/room/picklerick) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/Pickle-rick#enumeration)
 ## Rooms in the process:
   - [Wreath](https://tryhackme.com/r/room/wreath)
