@@ -8,3 +8,4 @@
   - [Linux Privilege Escalation](https://tryhackme.com/r/room/linprivesc) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/Linux-privilege-escalation#enumeration)
   - [OhSINT](https://tryhackme.com/r/room/ohsint) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/OhSINT#osint)
 ## Rooms in the process:
+  - [Wreath](https://tryhackme.com/r/room/wreath)
