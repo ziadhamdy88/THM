@@ -89,6 +89,19 @@
 				`<root>&read;</root>`
 		- **NOTE:** Common location for `ssh` keys is `/home/<user>/.ssh/id_rsa`.
 - ## Broken Access Control
+	- Regular visitor accessing protected pages that should only be accessible to admins.
+	- Leads to accessing unauthorized functionality and being able to view sensitive information.
+	- **Examples:**
+		- The application uses unverified data in a SQL call that is accessing account information.
+			 `pstmt.setString(1, request.getParameter("acct"));`
+			 `ResultSet results = pstmt.executeQuery();`
+			 - An attacker can simply modify the `acct` parameter in the browser to send whatever account number they want.
+		-  An attacker simply force browses to target URLs. Admin rights are required for access to the admin page.
+			 `http://example.com/app/getappinfo`
+			 `http://example.com/app/admin_getappinfo`
+			- If an unauthorized user can access either page, it's a flaw.
+	- **IDOR (Insecure Direct Object Reference):**
+		- The act of exploiting a misconfiguration in the way user input is handled, to access resources you wouldn't ordinarily be able to access. IDOR is a type of access control vulnerability.
 - ## Security Misconfiguration
 - ## Cross-site Scripting
 - ## Insecure Deserialization
