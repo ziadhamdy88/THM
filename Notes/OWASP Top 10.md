@@ -65,7 +65,7 @@
 		- **Components:**
 			- Starts with a XML Prolog. `<?xml version="1.0" encoding="UTF-8"?>`.
 			- Must contain a root element, for example:
-				- ``<?xml version="1.0" encoding="UTF-8"?>
+				- `<?xml version="1.0" encoding="UTF-8"?>`
 				  `<mail>` <--- Root element
 					`<to>falcon</to>`
 					`<from>feast</from>`
