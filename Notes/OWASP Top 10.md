@@ -65,7 +65,7 @@
 		- **Components:**
 			- Starts with a XML Prolog. `<?xml version="1.0" encoding="UTF-8"?>`.
 			- Must contain a root element, for example:
-				- `<?xml version="1.0" encoding="UTF-8"?>`
+				- ``<?xml version="1.0" encoding="UTF-8"?>
 				  `<mail>` <--- Root element
 					`<to>falcon</to>`
 					`<from>feast</from>`
@@ -103,7 +103,32 @@
 	- **IDOR (Insecure Direct Object Reference):**
 		- The act of exploiting a misconfiguration in the way user input is handled, to access resources you wouldn't ordinarily be able to access. IDOR is a type of access control vulnerability.
 - ## Security Misconfiguration
+	- Poorly configured permissions on cloud services, like S3 buckets.
+	- Having unnecessary features enabled, like services, pages, accounts or privileges.
+	- Default accounts with unchanged passwords.
+	- Error messages that are overly detailed and allow an attacker to find out more about the system.
+	- Not using HTTP security headers, or revealing too much detail in the Server: HTTP header.
+	- This vulnerability can often lead to more vulnerabilities, such as access to sensitive data, XXE or command injection on admin pages.
 - ## Cross-site Scripting
+	- An Inject attack that allows the attacker to execute malicious scripts and have it execute on a victim's machine.
+	- A web application is vulnerable to XSS if it uses unsanitized user input.
+	- Possible in JavaScript, VBScript, Flash and CSS.
+	- **Types:**
+		- Stored XSS:
+			- Most dangerous, where a malicious string is generated from the website's database.
+			- Happens when a website allows user input that is't sanitized when inserted into the database.
+		- Reflected XSS:
+			- The malicious payload is part of the victim's request to the website.
+			- The website includes this payload in response back to the user.
+			- An attacker needs to trick a victim into clicking a URL to execute their malicious payload.
+		- DOM-Based XSS:
+			- Document Object Model, which is the programming interface for HTML and XML documents.
+			- Represents the page so that programs can change the document structure, style and content.
+	- **Payload Examples:**
+		- Popups (`<script>alert("Hello World!")</script>`)
+		- Writing HTML (`document.write`) - overrides the website's HTML to add your own (defacing).
+		- XSS Keylogger - log all keystrokes of a user, capturing their password and other sensitive information they type into the web page.
+		- Port scanning - a mini local port scanner
 - ## Insecure Deserialization
 - ## Components with Known Vulnerabilities
 - ## Insufficient Logging and Monitoring
