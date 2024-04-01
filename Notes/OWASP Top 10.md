@@ -130,5 +130,11 @@
 		- XSS Keylogger - log all keystrokes of a user, capturing their password and other sensitive information they type into the web page.
 		- Port scanning - a mini local port scanner
 - ## Insecure Deserialization
+	- Vulnerability which occurs when untrusted data is used to abuse the logic of an application (broad definition).
+	- Replacing data processed by an application with malicious code; allowing anything from DoS to RCE (Remote Code Execution) that the attacker can use to gain foothold.
+	- This malicious code leverages serialization and deserialization process used by web applications.
+	- Serialization is the process of converting objects used in programming into simpler, compatible formatting for transmitting between systems or networks for further processing and storage.
+	- Deserialization is the process of converting serialized information into their complex form, i.e an object that the application will understand.
+	- Exploiting cookies, decoding them, depending on the application it might be command injectable but would require the command to be encoded first.
 - ## Components with Known Vulnerabilities
 - ## Insufficient Logging and Monitoring
