@@ -17,7 +17,5 @@
 >	- Download them to be used to crack the hash.
 >	- Using `samdump2 SAM SYSTEM` to get the hash values.![](sam-hashes.png)
 >	- Using the found hash for `Lab` user in `crackstation`.![](lab-hash-cracked.png)
->	- 
 >	- Exploring the machine, we can access the `/Administrator` directory.
 >	- The `root.txt.txt` which contains the flag is located in the `Desktop`.![](flag-1.png)
->	- 
