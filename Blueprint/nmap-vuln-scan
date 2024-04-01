@@ -1,0 +1,239 @@
+# Nmap 7.94SVN scan initiated Mon Apr  1 13:14:24 2024 as: nmap -A -sVC --script vuln -p80,135,139,443,445,3306,8080,49152,49153,49154,49158,49159,49160 -oN nmap-vuln-scan 10.10.135.85
+Nmap scan report for 10.10.135.85
+Host is up (0.22s latency).
+
+PORT      STATE SERVICE      VERSION
+80/tcp    open  http         Microsoft IIS httpd 7.5
+|_http-stored-xss: Couldn't find any stored XSS vulnerabilities.
+|_http-dombased-xss: Couldn't find any DOM based XSS.
+|_http-csrf: Couldn't find any CSRF vulnerabilities.
+|_http-server-header: Microsoft-IIS/7.5
+135/tcp   open  msrpc        Microsoft Windows RPC
+139/tcp   open  netbios-ssn  Microsoft Windows netbios-ssn
+443/tcp   open  ssl/http     Apache httpd 2.4.23 (OpenSSL/1.0.2h PHP/5.6.28)
+| http-csrf: 
+| Spidering limited to: maxdepth=3; maxpagecount=20; withinhost=10.10.135.85
+|   Found the following possible CSRF vulnerabilities: 
+|     
+|     Path: http://10.10.135.85:443/oscommerce-2.3.4/catalog/
+|     Form id: 
+|     Form action: http://localhost:8080/oscommerce-2.3.4/catalog/index.php
+|     
+|     Path: http://10.10.135.85:443/oscommerce-2.3.4/catalog/
+|     Form id: 
+|     Form action: http://localhost:8080/oscommerce-2.3.4/catalog/advanced_search_result.php
+|     
+|     Path: http://10.10.135.85:443/oscommerce-2.3.4/catalog/
+|     Form id: 
+|_    Form action: http://localhost:8080/oscommerce-2.3.4/catalog/index.php
+| http-enum: 
+|   /: Root directory w/ listing on 'apache/2.4.23 (win32) openssl/1.0.2h php/5.6.28'
+|   /icons/: Potentially interesting folder w/ directory listing
+|   /server-info/: Potentially interesting folder
+|_  /server-status/: Potentially interesting folder
+|_http-trace: TRACE is enabled
+|_http-server-header: Apache/2.4.23 (Win32) OpenSSL/1.0.2h PHP/5.6.28
+| ssl-dh-params: 
+|   VULNERABLE:
+|   Diffie-Hellman Key Exchange Insufficient Group Strength
+|     State: VULNERABLE
+|       Transport Layer Security (TLS) services that use Diffie-Hellman groups
+|       of insufficient strength, especially those using one of a few commonly
+|       shared groups, may be susceptible to passive eavesdropping attacks.
+|     Check results:
+|       WEAK DH GROUP 1
+|             Cipher Suite: TLS_DHE_RSA_WITH_AES_256_GCM_SHA384
+|             Modulus Type: Safe prime
+|             Modulus Source: RFC2409/Oakley Group 2
+|             Modulus Length: 1024
+|             Generator Length: 8
+|             Public Key Length: 1024
+|     References:
+|_      https://weakdh.org
+|_http-stored-xss: Couldn't find any stored XSS vulnerabilities.
+|_http-dombased-xss: Couldn't find any DOM based XSS.
+| http-sql-injection: 
+|   Possible sqli for queries:
+|     https://10.10.135.85:443/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=N%3BO%3DD%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=D%3BO%3DD%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=N%3BO%3DD%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=S%3BO%3DD%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=M%3BO%3DD%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=N%3BO%3DD%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=D%3BO%3DD%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=S%3BO%3DD%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/docs/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/docs/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/docs/?C=N%3BO%3DD%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/docs/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=M%3BO%3DD%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=N%3BO%3DD%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     https://10.10.135.85:443/oscommerce-2.3.4/?C=N%3BO%3DA%27%20OR%20sqlspider
+|_    https://10.10.135.85:443/oscommerce-2.3.4/?C=M%3BO%3DA%27%20OR%20sqlspider
+445/tcp   open  microsoft-ds Microsoft Windows 7 - 10 microsoft-ds (workgroup: WORKGROUP)
+3306/tcp  open  mysql        MariaDB (unauthorized)
+8080/tcp  open  http         Apache httpd 2.4.23 (OpenSSL/1.0.2h PHP/5.6.28)
+|_http-server-header: Apache/2.4.23 (Win32) OpenSSL/1.0.2h PHP/5.6.28
+|_http-trace: TRACE is enabled
+| http-csrf: 
+| Spidering limited to: maxdepth=3; maxpagecount=20; withinhost=10.10.135.85
+|   Found the following possible CSRF vulnerabilities: 
+|     
+|     Path: http://10.10.135.85:8080/oscommerce-2.3.4/catalog/
+|     Form id: 
+|     Form action: http://localhost:8080/oscommerce-2.3.4/catalog/index.php
+|     
+|     Path: http://10.10.135.85:8080/oscommerce-2.3.4/catalog/
+|     Form id: 
+|     Form action: http://localhost:8080/oscommerce-2.3.4/catalog/advanced_search_result.php
+|     
+|     Path: http://10.10.135.85:8080/oscommerce-2.3.4/catalog/
+|     Form id: 
+|_    Form action: http://localhost:8080/oscommerce-2.3.4/catalog/index.php
+|_http-stored-xss: Couldn't find any stored XSS vulnerabilities.
+| http-enum: 
+|   /: Root directory w/ listing on 'apache/2.4.23 (win32) openssl/1.0.2h php/5.6.28'
+|   /icons/: Potentially interesting folder w/ directory listing
+|   /server-info/: Potentially interesting folder
+|_  /server-status/: Potentially interesting folder
+|_http-dombased-xss: Couldn't find any DOM based XSS.
+| http-sql-injection: 
+|   Possible sqli for queries:
+|     http://10.10.135.85:8080/?C=N%3BO%3DD%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=N%3BO%3DD%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=M%3BO%3DD%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=D%3BO%3DD%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=S%3BO%3DD%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=N%3BO%3DD%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/docs/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/docs/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/docs/?C=N%3BO%3DD%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/docs/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=M%3BO%3DD%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=D%3BO%3DD%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=S%3BO%3DD%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=N%3BO%3DD%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=M%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=D%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/docs/?C=N%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/docs/?C=S%3BO%3DA%27%20OR%20sqlspider
+|     http://10.10.135.85:8080/oscommerce-2.3.4/docs/?C=M%3BO%3DD%27%20OR%20sqlspider
+|_    http://10.10.135.85:8080/oscommerce-2.3.4/docs/?C=D%3BO%3DA%27%20OR%20sqlspider
+49152/tcp open  msrpc        Microsoft Windows RPC
+49153/tcp open  msrpc        Microsoft Windows RPC
+49154/tcp open  msrpc        Microsoft Windows RPC
+49158/tcp open  msrpc        Microsoft Windows RPC
+49159/tcp open  msrpc        Microsoft Windows RPC
+49160/tcp open  msrpc        Microsoft Windows RPC
+Service Info: Hosts: www.example.com, BLUEPRINT, localhost; OS: Windows; CPE: cpe:/o:microsoft:windows
+
+Host script results:
+|_smb-vuln-ms10-054: false
+|_smb-vuln-ms10-061: NT_STATUS_OBJECT_NAME_NOT_FOUND
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+# Nmap done at Mon Apr  1 13:35:27 2024 -- 1 IP address (1 host up) scanned in 1262.65 seconds
