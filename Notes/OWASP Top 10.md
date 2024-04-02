@@ -100,8 +100,18 @@
 			 `http://example.com/app/getappinfo`
 			 `http://example.com/app/admin_getappinfo`
 			- If an unauthorized user can access either page, it's a flaw.
+		- Accessing API with missing access controls for POST, PUT and DELETE.
+		- Metadata manipulation, such as replaying or tampering with a JSON Web Token (JWT) access control token, or a cookie or hidden field manipulated to elevate privileges or abusing JWT invalidation.
+		- CORS misconfiguration allows API access from unauthorized/untrusted origins.
 	- **IDOR (Insecure Direct Object Reference):**
 		- The act of exploiting a misconfiguration in the way user input is handled, to access resources you wouldn't ordinarily be able to access. IDOR is a type of access control vulnerability.
+	-  **Remediation:**
+		- Access control is only effective in trusted server-side code or server-less API, where the attacker cannot modify the access control check or metadata.
+		- Except for public resources, deny by default.
+		- Implement access control mechanisms once and re-use them throughout the application, including minimizing CORS (Cross-Origin Resource Sharing) usage.
+		- Rate limit API and controller access to minimize the harm from automated attack tooling.
+		- Stateful session identifiers should be invalidated on the server after logout. Stateless JWT tokens should rather be short-lived so that the window of opportunity for an attacker is minimized. For longer lived JWT it's highly recommended to follow the OAuth standards to revoke access.
+
 - ## Security Misconfiguration
 	- Poorly configured permissions on cloud services, like S3 buckets.
 	- Having unnecessary features enabled, like services, pages, accounts or privileges.
