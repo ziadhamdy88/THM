@@ -1,3 +1,4 @@
+## *Pivoting*
 - The art of using access obtained over one machine to exploit another machine deeper in the network.
 - Attackers can gain initial access on a remote network, and use it to access other machines in the network, that would not otherwise be accessible.
 - **Methods:**
