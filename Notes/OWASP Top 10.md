@@ -123,6 +123,11 @@
 	- Error messages that are overly detailed and allow an attacker to find out more about the system.
 	- Not using HTTP security headers, or revealing too much detail in the Server: HTTP header.
 	- This vulnerability can often lead to more vulnerabilities, such as access to sensitive data, XXE or command injection on admin pages.
+	- **Remediation:**
+		- A repeatable hardening process makes it fast and easy to deploy another environment that is appropriately locked down. Development, QA, and production environments should all be configured identically, with different credentials used in each environment. This process should be automated to minimize the effort required to set up a new secure environment.
+		- A minimal features without any unnecessary features, components, documentation, and samples. Remove or do not install unused features and frameworks.
+		- A segmented application architecture provides effective and secure separation between components or tenants, with segmentation, containerization, or cloud security groups (ACLs).
+		- Disabling directory listing on servers.
 - ## Cross-site Scripting
 	- An Inject attack that allows the attacker to execute malicious scripts and have it execute on a victim's machine.
 	- A web application is vulnerable to XSS if it uses unsanitized user input.
