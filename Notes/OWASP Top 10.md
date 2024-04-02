@@ -1,9 +1,9 @@
 - ## Injection
 	- Exploited when user controlled input is interpreted as actual commands or parameters by the application.
 	- **Types:**
-		- *SQL Injection (SQLi):*
+		- **SQL Injection (SQLi):**
 			- Input passed to SQL queries.
-		- Command Injection:
+		- **Command Injection:**
 			- Input passed to system commands.
 			- When server-side code like PHP in a web application makes a system call on the hosting machine.
 			- Attacker could execute operating system commands on the server.
@@ -13,7 +13,27 @@
 				- When the system command to the server doesn't return the response to the user in the HTML document.
 			- *Active Command Injection:*
 				- Return the response to the user.
-	- **Remediation:**
+		- **Cross-site Scripting:**
+			- Allows the attacker to execute malicious scripts and have it execute on a victim's machine.
+			- A web application is vulnerable to XSS if it uses unsanitized user input.
+			- Possible in JavaScript, VBScript, Flash and CSS.
+			- **Types:**
+				- Stored XSS:
+					- Most dangerous, where a malicious string is generated from the website's database.
+					- Happens when a website allows user input that is't sanitized when inserted into the database.
+				- Reflected XSS:
+					- The malicious payload is part of the victim's request to the website.
+					- The website includes this payload in response back to the user.
+					- An attacker needs to trick a victim into clicking a URL to execute their malicious payload.
+				- DOM-Based XSS:
+					- Document Object Model, which is the programming interface for HTML and XML documents.
+					- Represents the page so that programs can change the document structure, style and content.
+			- **Payload Examples:**
+				- Popups (`<script>alert("Hello World!")</script>`)
+				- Writing HTML (`document.write`) - overrides the website's HTML to add your own (defacing).
+				- XSS Keylogger - log all keystrokes of a user, capturing their password and other sensitive information they type into the web page.
+				- Port scanning - a mini local port scanner
+	- **Remediations:**
 		- Use an allow list where the user input is compared to a list of safe input characters, if not safe then it is rejected and the application throws an error.
 		- Stripping input where the dangerous characters are removed before the input is processed.
 		- Use a safe API, which avoids using the interpreter entirely, provides a parameterized interface, or migrates to ORM (Object Relational Mapping).
@@ -24,7 +44,7 @@
 		- Brute-force attacks.
 		- Use of weak credentials.
 		- Weak session cookies.
-	- **Remediation:**
+	- **Remediations:**
 		- Enforce strong password policies.
 		- Enforce automatic lockout after a certain number of attempts.
 		- Implement Multi Factor Authentication.
@@ -110,7 +130,7 @@
 		- CORS misconfiguration allows API access from unauthorized/untrusted origins.
 	- **IDOR (Insecure Direct Object Reference):**
 		- The act of exploiting a misconfiguration in the way user input is handled, to access resources you wouldn't ordinarily be able to access. IDOR is a type of access control vulnerability.
-	-  **Remediation:**
+	-  **Remediations:**
 		- Access control is only effective in trusted server-side code or server-less API, where the attacker cannot modify the access control check or metadata.
 		- Except for public resources, deny by default.
 		- Implement access control mechanisms once and re-use them throughout the application, including minimizing CORS (Cross-Origin Resource Sharing) usage.
@@ -123,31 +143,11 @@
 	- Error messages that are overly detailed and allow an attacker to find out more about the system.
 	- Not using HTTP security headers, or revealing too much detail in the Server: HTTP header.
 	- This vulnerability can often lead to more vulnerabilities, such as access to sensitive data, XXE or command injection on admin pages.
-	- **Remediation:**
+	- **Remediations:**
 		- A repeatable hardening process makes it fast and easy to deploy another environment that is appropriately locked down. Development, QA, and production environments should all be configured identically, with different credentials used in each environment. This process should be automated to minimize the effort required to set up a new secure environment.
 		- A minimal features without any unnecessary features, components, documentation, and samples. Remove or do not install unused features and frameworks.
 		- A segmented application architecture provides effective and secure separation between components or tenants, with segmentation, containerization, or cloud security groups (ACLs).
 		- Disabling directory listing on servers.
-- ## Cross-site Scripting
-	- An Inject attack that allows the attacker to execute malicious scripts and have it execute on a victim's machine.
-	- A web application is vulnerable to XSS if it uses unsanitized user input.
-	- Possible in JavaScript, VBScript, Flash and CSS.
-	- **Types:**
-		- Stored XSS:
-			- Most dangerous, where a malicious string is generated from the website's database.
-			- Happens when a website allows user input that is't sanitized when inserted into the database.
-		- Reflected XSS:
-			- The malicious payload is part of the victim's request to the website.
-			- The website includes this payload in response back to the user.
-			- An attacker needs to trick a victim into clicking a URL to execute their malicious payload.
-		- DOM-Based XSS:
-			- Document Object Model, which is the programming interface for HTML and XML documents.
-			- Represents the page so that programs can change the document structure, style and content.
-	- **Payload Examples:**
-		- Popups (`<script>alert("Hello World!")</script>`)
-		- Writing HTML (`document.write`) - overrides the website's HTML to add your own (defacing).
-		- XSS Keylogger - log all keystrokes of a user, capturing their password and other sensitive information they type into the web page.
-		- Port scanning - a mini local port scanner
 - ## Insecure Deserialization
 	- Vulnerability which occurs when untrusted data is used to abuse the logic of an application (broad definition).
 	- Replacing data processed by an application with malicious code; allowing anything from DoS to RCE (Remote Code Execution) that the attacker can use to gain foothold.
