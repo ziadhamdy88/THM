@@ -24,10 +24,13 @@
 		- Brute-force attacks.
 		- Use of weak credentials.
 		- Weak session cookies.
-	- **Mitigation:**
+	- **Remediation:**
 		- Enforce strong password policies.
 		- Enforce automatic lockout after a certain number of attempts.
 		- Implement Multi Factor Authentication.
+		- Ensure registration, credential recovery, and API pathways are hardened against account enumeration attacks by using the same messages for all outcomes.
+		- Limit or increasingly delay failed login attempts.
+		- Use a server-side, secure, built-in session manager that generates a new random session ID with high entropy after login. Session identifier should not be in the URL, be securely stored, and invalidated after logout, idle, and absolute timeouts.
 	- **Example:**
 		- User input without sanitization, a user named "admin" exists on an application.
 		- We want to access that account, a possible exploit would be to re-register that username but with a slight modification.
