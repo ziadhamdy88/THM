@@ -74,6 +74,15 @@
 		- Use a safe API, which avoids using the interpreter entirely, provides a parameterized interface, or migrates to ORM (Object Relational Mapping).
 		- Use LIMIT and other SQL controls within queries to prevent mass disclosure of records in case of a SQL injection.
 - ## Insecure Design
+	- A broad category representing different weaknesses, expressed as "missing or ineffective control design". 
+	- Insecure design is different from insecure implementation, a secure design can still have implementation defects leading to vulnerabilities that may be exploited, just like an insecure design cannot be fixed by a perfect implementation, needed security controls were never created to defend against specific attacks.
+	- **Remediations:**
+		- Establish and use a secure development lifecycle with AppSec professionals to help evaluate and design security and privacy-related controls.
+		- Establish and use a library of secure design patterns or paved road ready to use components.
+		- Use threat modeling for critical authentication, access control, business logic, and key flows.
+		- Write unit and integration tests to validate that all critical flows are resistant to the threat model.
+		- Segregate tier layers on the system and network layers depending on the exposure and protection needs.
+		- Limit resource consumption by user or service.
 - ## Security Misconfiguration
 	- Poorly configured permissions on cloud services, like S3 buckets.
 	- Having unnecessary features enabled, like services, pages, accounts or privileges.
