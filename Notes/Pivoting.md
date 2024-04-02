@@ -12,3 +12,31 @@
 - Choosing a style of pivoting entirely depends on the layout of the network. So after gaining access, further enumeration is required.
 - Drawing a layout of the network as we enumerate is essential.
 - **NOTE:** a general rule, if you have multiple possible entry-points, try to use Linux/Unix target when possible, as they tend to be easier to pivot from. An outward facing Linux web server is absolutely ideal.
+- **Enumeration**
+	- The more we know about the target, the more options we have available to us.
+	- **Possible ways**:
+		- Using material found on the machine like hosts file and ARP cache.
+		- Using pre-installed tools.
+		- Using statically compiled tools.
+		- Using scripting techniques.
+		- Using local tools through a proxy.
+	- Using local tools through a proxy is incredibly slow.
+	- Using `arp -a` in Windows or Linux to check the ARP cache of the machine -- this will show any IP addresses of hosts that the target has interacted with recently.
+	- Static mappings can be found in `/etc/hosts` or `C:\Windows\System32\drivers\etc\hosts` on Linux and Windows respectively.
+	- `/etc/resolv.conf` on Linux may also identify any local DNS servers, which may be misconfigured to allow something like a DNS zone transfer attack.
+	- On Windows the easiest way to check the DNS servers for an interface is with `ipconfig /all`. Linux has an equivalent command as an alternative to reading the `resolve.conf` file `nmcli dev show`.
+	- Ideally we want to take advantage of pre-installed tools on the system, for example, sometime Linux systems have nmap installed by default. This is an example of Living of the Land (LotL) -- a good way to minimize risk.
+	- Failing that, it's very easy to transfer a static binary, or put together a simple ping-sweep tool in Bash.
+	- If there are no useful tools installed on the system, and the rudimentary scripts are not working, then it's possible to get static copies of many tools.
+	- These are versions of the tools that are compiled in such a way as to not require any dependencies from the box, in other words, they could theoretically work on any target.
+	- Statically compiled copies for different operating systems can be found [here](https://github.com/andrew-d/static-binaries) and [here](https://github.com/ernw/)
+	- **Scanning through a proxy:**
+		- Should be a last resort, as scanning through something like proxy chains is very slow, and often limited (you can not scan a UDP port from a TCP proxy for example).
+		- The one exception to this rule is when using the Nmap Scripting Engine (NSE), as the scripts library doesn't come with statically compiled version of the tool. As such, you can use a static copy of Nmap to sweep the network and find hosts with open ports, then use your local copy of Nmap through a proxy specifically against the found ports.
+	- **Living of the Land (LotL):**
+		- Ideally a tool like Nmap will already be installed on the target; however, this is not always the case. If this happens, it's worth looking into whether you can use an installed shell to perform a sweep of the network. For example, the following Bash one-liner would perform a full ping sweep of the `192.168.1.x` network `for i in {1..255}; do (ping -c 1 192.168.1.${i} | grep "bytes from" &); done`
+		- The equivalent of this command in PowerShell is unbearably slow.
+		- May encounter hosts which have firewalls blocking ICMP pings. This is likely to be less of a problem when pivoting, however, as these firewalls (by default) often only apply to external traffic, meaning that anything sent through a compromised host on the network should be safe.
+		- If you suspect that a host is active but is blocking ICMP ping requests, you could also check some common ports using a tool like `netcat`.
+		- Port scanning in bash can be done (ideally) entirely natively `for i in {1..65535}; do (echo > /dev/tcp/192.168.1.1/$i) >/dev/null 2>&i && echo &i is open; done`
+		- The above bash script will take a long time.
