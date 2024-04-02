@@ -1,3 +1,38 @@
+- ## Broken Access Control
+	- Regular visitor accessing protected pages that should only be accessible to admins.
+	- Leads to accessing unauthorized functionality and being able to view sensitive information.
+	- **Examples:**
+		- The application uses unverified data in a SQL call that is accessing account information.
+			 `pstmt.setString(1, request.getParameter("acct"));`
+			 `ResultSet results = pstmt.executeQuery();`
+			 - An attacker can simply modify the `acct` parameter in the browser to send whatever account number they want.
+		-  An attacker simply force browses to target URLs. Admin rights are required for access to the admin page.
+			 `http://example.com/app/getappinfo`
+			 `http://example.com/app/admin_getappinfo`
+			- If an unauthorized user can access either page, it's a flaw.
+		- Accessing API with missing access controls for POST, PUT and DELETE.
+		- Metadata manipulation, such as replaying or tampering with a JSON Web Token (JWT) access control token, or a cookie or hidden field manipulated to elevate privileges or abusing JWT invalidation.
+		- CORS misconfiguration allows API access from unauthorized/untrusted origins.
+	- **IDOR (Insecure Direct Object Reference):**
+		- The act of exploiting a misconfiguration in the way user input is handled, to access resources you wouldn't ordinarily be able to access. IDOR is a type of access control vulnerability.
+	-  **Remediations:**
+		- Access control is only effective in trusted server-side code or server-less API, where the attacker cannot modify the access control check or metadata.
+		- Except for public resources, deny by default.
+		- Implement access control mechanisms once and re-use them throughout the application, including minimizing CORS (Cross-Origin Resource Sharing) usage.
+		- Rate limit API and controller access to minimize the harm from automated attack tooling.
+		- Stateful session identifiers should be invalidated on the server after logout. Stateless JWT tokens should rather be short-lived so that the window of opportunity for an attacker is minimized. For longer lived JWT it's highly recommended to follow the OAuth standards to revoke access.
+- ## Sensitive Data Exposure (Cryptographic Failures)
+	- When a web application divulges sensitive data.
+	- Often involves techniques such as Man in The Middle (MITM), where the attacker force user connections through a device which he controls, then take advantage of weak encryption on any transmitted data to gain access to the intercepted information.
+	- Data is most probably located in a database, whether its a MySQL database or a NoSQL database which all run on a dedicated server.
+	- Databases can also be stored in files, these databases are called `flat-file`, which is much easier than setting up a full database server, used for small web applications.
+		- These files could be located under that `root` directory of the website.
+		- The simplest format of flat-file database is `sqlite` database, which can be interacted with in most programming languages, and have a client for querying them, on Kali is called `sqlite3`.
+		- Check file using `file example.db`.
+		- Access the database using `sqlite3 <database-name>`.
+		- Check tables using `.tables`.
+		- Check table information using `PRAGMA table_info(<table-name>)`.
+		- Use any `SQL` query needed.
 - ## Injection
 	- Exploited when user controlled input is interpreted as actual commands or parameters by the application.
 	- **Types:**
@@ -38,7 +73,65 @@
 		- Stripping input where the dangerous characters are removed before the input is processed.
 		- Use a safe API, which avoids using the interpreter entirely, provides a parameterized interface, or migrates to ORM (Object Relational Mapping).
 		- Use LIMIT and other SQL controls within queries to prevent mass disclosure of records in case of a SQL injection.
-- ## Broken Authentication
+- ## Insecure Design
+- ## Security Misconfiguration
+	- Poorly configured permissions on cloud services, like S3 buckets.
+	- Having unnecessary features enabled, like services, pages, accounts or privileges.
+	- Default accounts with unchanged passwords.
+	- Error messages that are overly detailed and allow an attacker to find out more about the system.
+	- Not using HTTP security headers, or revealing too much detail in the Server: HTTP header.
+	- This vulnerability can often lead to more vulnerabilities, such as access to sensitive data, XXE or command injection on admin pages.
+	- **XML External Entity (XXE):**
+		- A vulnerability that abuses features of XML parser/data.
+		- Often allows an attacker to interact with any backend or external systems that the application itself can access and can allow the attacker to read the file on that system.
+		- Can also cause a DoS attack or perform SSRF inducing the web application to make requests to other applications.
+		- Can enable port scanning and lead to remote code execution.
+		- **Types:**
+			- *In-band XXE:*
+				- Attacker can receive an immediate response to the XXE payload.
+			- *Out-band/blind XXE:*
+				- No immediate response from the web application and attacker has to reflect the output of their XXE payload to some other file or their own server.
+		- **What is XML:**
+			- XML (eXtensible Markup Language) is a markup language that defines a set of rules for encoding documents in a format that is both human-readable and machine-readable.
+			- Used for storing and transporting data.
+			- Platform-independent and programming language independent.
+			- Data stored and transported using XML can be changed at any point in time without affecting the data presentation.
+			- XML allows validation using DTD (Document Type Definitions) and Schema, this validation insures that the XML document is free from any syntax error.
+			- Simplifies data sharing between various systems because of its platform-independent nature. XML data doesn't require any conversion when transferred between different systems.
+			- XML is case sensitive.
+			- **Components:**
+				- Starts with a XML Prolog. `<?xml version="1.0" encoding="UTF-8"?>`.
+				- Must contain a root element, for example:
+					- ``<?xml version="1.0" encoding="UTF-8"?>
+					  `<mail>` <--- Root element
+						`<to>falcon</to>`
+						`<from>feast</from>`
+						`<subject>About XXE</subject>`
+						`<text>Teach about XXE</text>`
+					  `</mail>`
+			- **DTD (Document Type Definition):**
+				- Defines the structure and the legal elements and attributes of an XML document.
+				- Used to validate the information of an XML document against the defined rules.
+			- **Payload examples:**
+				- Simple payload:
+					 `<!DOCTYPE replace [<!ENTITY name "feast"> ]>`
+					 `<userInfo>`
+						 `<firstName>falcon</firstName>`
+						 `<lastName>&name;</lastName>`
+					 `</userInfo>`
+					 - Defining an Entity called `name` and assigning it a value of `feast`, and later, used that entity in the code.
+				- Payload to read some file:
+					`<?xml version="1.0"?>`
+					`<!DOCTYPE root [<!ENTITY read SYSTEM 'file:///etc/passwd'>]>`
+					`<root>&read;</root>`
+			- **NOTE:** Common location for `ssh` keys is `/home/<user>/.ssh/id_rsa`.
+	- **Remediations:**
+		- A repeatable hardening process makes it fast and easy to deploy another environment that is appropriately locked down. Development, QA, and production environments should all be configured identically, with different credentials used in each environment. This process should be automated to minimize the effort required to set up a new secure environment.
+		- A minimal features without any unnecessary features, components, documentation, and samples. Remove or do not install unused features and frameworks.
+		- A segmented application architecture provides effective and secure separation between components or tenants, with segmentation, containerization, or cloud security groups (ACLs).
+		- Disabling directory listing on servers.
+- ## Components with Known Vulnerabilities
+- ## Broken Authentication (Identification and Authentication Failures)
 	- Allow access to other users' accounts which would allow the attacker to access sensitive data.
 	- **Types:**
 		- Brute-force attacks.
@@ -57,103 +150,12 @@
 		- Use the username ` admin` (space at the beginning), fill any required inputs and submit.
 		- The new user if created will have the same right as the normal admin.
 		- The new user will also be able to see all the content presented under the user `admin`.
-- ## Sensitive Data Exposure
-	- When a web application divulges sensitive data.
-	- Often involves techniques such as Man in The Middle (MITM), where the attacker force user connections through a device which he controls, then take advantage of weak encryption on any transmitted data to gain access to the intercepted information.
-	- Data is most probably located in a database, whether its a MySQL database or a NoSQL database which all run on a dedicated server.
-	- Databases can also be stored in files, these databases are called `flat-file`, which is much easier than setting up a full database server, used for small web applications.
-		- These files could be located under that `root` directory of the website.
-		- The simplest format of flat-file database is `sqlite` database, which can be interacted with in most programming languages, and have a client for querying them, on Kali is called `sqlite3`.
-		- Check file using `file example.db`.
-		- Access the database using `sqlite3 <database-name>`.
-		- Check tables using `.tables`.
-		- Check table information using `PRAGMA table_info(<table-name>)`.
-		- Use any `SQL` query needed.
-- ## XML External Entity (XXE)
-	- A vulnerability that abuses features of XML parser/data.
-	- Often allows an attacker to interact with any backend or external systems that the application itself can access and can allow the attacker to read the file on that system.
-	- Can also cause a DoS attack or perform SSRF inducing the web application to make requests to other applications.
-	- Can enable port scanning and lead to remote code execution.
-	- **Types:**
-		- *In-band XXE:*
-			- Attacker can receive an immediate response to the XXE payload.
-		- *Out-band/blind XXE:*
-			- No immediate response from the web application and attacker has to reflect the output of their XXE payload to some other file or their own server.
-	- **What is XML:**
-		- XML (eXtensible Markup Language) is a markup language that defines a set of rules for encoding documents in a format that is both human-readable and machine-readable.
-		- Used for storing and transporting data.
-		- Platform-independent and programming language independent.
-		- Data stored and transported using XML can be changed at any point in time without affecting the data presentation.
-		- XML allows validation using DTD (Document Type Definitions) and Schema, this validation insures that the XML document is free from any syntax error.
-		- Simplifies data sharing between various systems because of its platform-independent nature. XML data doesn't require any conversion when transferred between different systems.
-		- XML is case sensitive.
-		- **Components:**
-			- Starts with a XML Prolog. `<?xml version="1.0" encoding="UTF-8"?>`.
-			- Must contain a root element, for example:
-				- ``<?xml version="1.0" encoding="UTF-8"?>
-				  `<mail>` <--- Root element
-					`<to>falcon</to>`
-					`<from>feast</from>`
-					`<subject>About XXE</subject>`
-					`<text>Teach about XXE</text>`
-				  `</mail>`
-		- **DTD (Document Type Definition):**
-			- Defines the structure and the legal elements and attributes of an XML document.
-			- Used to validate the information of an XML document against the defined rules.
-		- **Payload examples:**
-			- Simple payload:
-				 `<!DOCTYPE replace [<!ENTITY name "feast"> ]>`
-				 `<userInfo>`
-					 `<firstName>falcon</firstName>`
-					 `<lastName>&name;</lastName>`
-				 `</userInfo>`
-				 - Defining an Entity called `name` and assigning it a value of `feast`, and later, used that entity in the code.
-			- Payload to read some file:
-				`<?xml version="1.0"?>`
-				`<!DOCTYPE root [<!ENTITY read SYSTEM 'file:///etc/passwd'>]>`
-				`<root>&read;</root>`
-		- **NOTE:** Common location for `ssh` keys is `/home/<user>/.ssh/id_rsa`.
-- ## Broken Access Control
-	- Regular visitor accessing protected pages that should only be accessible to admins.
-	- Leads to accessing unauthorized functionality and being able to view sensitive information.
-	- **Examples:**
-		- The application uses unverified data in a SQL call that is accessing account information.
-			 `pstmt.setString(1, request.getParameter("acct"));`
-			 `ResultSet results = pstmt.executeQuery();`
-			 - An attacker can simply modify the `acct` parameter in the browser to send whatever account number they want.
-		-  An attacker simply force browses to target URLs. Admin rights are required for access to the admin page.
-			 `http://example.com/app/getappinfo`
-			 `http://example.com/app/admin_getappinfo`
-			- If an unauthorized user can access either page, it's a flaw.
-		- Accessing API with missing access controls for POST, PUT and DELETE.
-		- Metadata manipulation, such as replaying or tampering with a JSON Web Token (JWT) access control token, or a cookie or hidden field manipulated to elevate privileges or abusing JWT invalidation.
-		- CORS misconfiguration allows API access from unauthorized/untrusted origins.
-	- **IDOR (Insecure Direct Object Reference):**
-		- The act of exploiting a misconfiguration in the way user input is handled, to access resources you wouldn't ordinarily be able to access. IDOR is a type of access control vulnerability.
-	-  **Remediations:**
-		- Access control is only effective in trusted server-side code or server-less API, where the attacker cannot modify the access control check or metadata.
-		- Except for public resources, deny by default.
-		- Implement access control mechanisms once and re-use them throughout the application, including minimizing CORS (Cross-Origin Resource Sharing) usage.
-		- Rate limit API and controller access to minimize the harm from automated attack tooling.
-		- Stateful session identifiers should be invalidated on the server after logout. Stateless JWT tokens should rather be short-lived so that the window of opportunity for an attacker is minimized. For longer lived JWT it's highly recommended to follow the OAuth standards to revoke access.
-- ## Security Misconfiguration
-	- Poorly configured permissions on cloud services, like S3 buckets.
-	- Having unnecessary features enabled, like services, pages, accounts or privileges.
-	- Default accounts with unchanged passwords.
-	- Error messages that are overly detailed and allow an attacker to find out more about the system.
-	- Not using HTTP security headers, or revealing too much detail in the Server: HTTP header.
-	- This vulnerability can often lead to more vulnerabilities, such as access to sensitive data, XXE or command injection on admin pages.
-	- **Remediations:**
-		- A repeatable hardening process makes it fast and easy to deploy another environment that is appropriately locked down. Development, QA, and production environments should all be configured identically, with different credentials used in each environment. This process should be automated to minimize the effort required to set up a new secure environment.
-		- A minimal features without any unnecessary features, components, documentation, and samples. Remove or do not install unused features and frameworks.
-		- A segmented application architecture provides effective and secure separation between components or tenants, with segmentation, containerization, or cloud security groups (ACLs).
-		- Disabling directory listing on servers.
-- ## Insecure Deserialization
+- ## Insecure Deserialization (Software and Data Integrity Failures)
 	- Vulnerability which occurs when untrusted data is used to abuse the logic of an application (broad definition).
 	- Replacing data processed by an application with malicious code; allowing anything from DoS to RCE (Remote Code Execution) that the attacker can use to gain foothold.
 	- This malicious code leverages serialization and deserialization process used by web applications.
 	- Serialization is the process of converting objects used in programming into simpler, compatible formatting for transmitting between systems or networks for further processing and storage.
 	- Deserialization is the process of converting serialized information into their complex form, i.e an object that the application will understand.
 	- Exploiting cookies, decoding them, depending on the application it might be command injectable but would require the command to be encoded first.
-- ## Components with Known Vulnerabilities
 - ## Insufficient Logging and Monitoring
+- ## Server-Side Request Forgery (SSRF)
