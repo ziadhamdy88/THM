@@ -1,0 +1,1 @@
+A write-up for the [Wreath](https://tryhackme.com/r/room/wreath) room.

@@ -1,0 +1,4 @@
+# Nmap 7.94SVN scan initiated Tue Apr  2 12:38:14 2024 as: nmap -p 22,80,443,10000 -sV -O -oG os-scan 10.200.43.200
+Host: 10.200.43.200 ()	Status: Up
+Host: 10.200.43.200 ()	Ports: 22/open/tcp//ssh//OpenSSH 8.0 (protocol 2.0)/, 80/open/tcp//http//Apache httpd 2.4.37 ((centos) OpenSSL|1.1.1c)/, 443/open/tcp//ssl|http//Apache httpd 2.4.37 ((centos) OpenSSL|1.1.1c)/, 10000/open/tcp//http//MiniServ 1.890 (Webmin httpd)/	Seq Index: 260	IP ID Seq: All zeros
+# Nmap done at Tue Apr  2 12:39:06 2024 -- 1 IP address (1 host up) scanned in 51.82 seconds
