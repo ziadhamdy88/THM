@@ -1,0 +1,13 @@
+- The art of using access obtained over one machine to exploit another machine deeper in the network.
+- Attackers can gain initial access on a remote network, and use it to access other machines in the network, that would not otherwise be accessible.
+- **Methods:**
+	- **Tunneling/Proxying:**
+		- Creating a proxy type connection through a compromised machine in order to route all desired traffic into the targeted network.
+		- This could potentially also be tunnelled inside another protocol (e.g SSH tunnelling), which can be useful for evading a basic IDS or firewall.
+		- Good if we want to redirect lots of different kinds of traffic into our target network, for example, with an nmap scan, or to access multiple ports on multiple different machines.
+	- **Port Forwarding:**
+		- Creating a connection between a local port and a single port on a target, via a compromised host.
+		- Tends to be faster and more reliable, but only allows us to access a single port (or a small range) on a target device.
+- Choosing a style of pivoting entirely depends on the layout of the network. So after gaining access, further enumeration is required.
+- Drawing a layout of the network as we enumerate is essential.
+- **NOTE:** a general rule, if you have multiple possible entry-points, try to use Linux/Unix target when possible, as they tend to be easier to pivot from. An outward facing Linux web server is absolutely ideal.
