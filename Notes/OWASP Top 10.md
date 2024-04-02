@@ -16,6 +16,8 @@
 	- **Remediation:**
 		- Use an allow list where the user input is compared to a list of safe input characters, if not safe then it is rejected and the application throws an error.
 		- Stripping input where the dangerous characters are removed before the input is processed.
+		- Use a safe API, which avoids using the interpreter entirely, provides a parameterized interface, or migrates to ORM (Object Relational Mapping).
+		- Use LIMIT and other SQL controls within queries to prevent mass disclosure of records in case of a SQL injection.
 - ## Broken Authentication
 	- Allow access to other users' accounts which would allow the attacker to access sensitive data.
 	- **Types:**
@@ -111,7 +113,6 @@
 		- Implement access control mechanisms once and re-use them throughout the application, including minimizing CORS (Cross-Origin Resource Sharing) usage.
 		- Rate limit API and controller access to minimize the harm from automated attack tooling.
 		- Stateful session identifiers should be invalidated on the server after logout. Stateless JWT tokens should rather be short-lived so that the window of opportunity for an attacker is minimized. For longer lived JWT it's highly recommended to follow the OAuth standards to revoke access.
-
 - ## Security Misconfiguration
 	- Poorly configured permissions on cloud services, like S3 buckets.
 	- Having unnecessary features enabled, like services, pages, accounts or privileges.
