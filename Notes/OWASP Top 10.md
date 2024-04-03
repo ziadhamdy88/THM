@@ -174,4 +174,20 @@
 	- Deserialization is the process of converting serialized information into their complex form, i.e an object that the application will understand.
 	- Exploiting cookies, decoding them, depending on the application it might be command injectable but would require the command to be encoded first.
 - ## Insufficient Logging and Monitoring
+	- When web applications are set up, every action performed by the user should be logged. In the event of an incident, the attacker's actions can be traced. Once their actions are traced, their risk and impact can be determined.
+	- Could cause regulatory damage, if an attacker has gained access to personally identifiable user information, and there is no record of this, not only are users of the applications are affected, but the application owners may be subject to fines or more severe actions depending on regulations.
+	- Could cause risk of further attacks, without logging, the presence of an attacker may be undetected. This could allow an attacker to launch further attacks against web application owners by stealing credentials, attacking infrastructure and more.
+	- Information stored in logs should include:
+		- HTTP status codes
+		- Time stamps
+		- Usernames
+		- API endpoints/page locations
+		- IP addresses
+	- Since these logs have some sensitive information in them, they should be stored securely and multiple copies of these logs are stored at different locations.
+	- Suspicious activity include:
+		- Multiple unauthorized attempts for a particular action.
+		- Requests from anomalous IP addresses or locations.
+		- Use of automated tools, for example using the values of User-Agent headers or the speed of the requests.
+		- Common payloads, for example detecting the use of XSS payloads.
+	- Just detecting suspicious activity isn't helpful, this suspicious activity needs to be rated according to the impact level.
 - ## Server-Side Request Forgery (SSRF)
