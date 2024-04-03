@@ -40,3 +40,20 @@
 		- If you suspect that a host is active but is blocking ICMP ping requests, you could also check some common ports using a tool like `netcat`.
 		- Port scanning in bash can be done (ideally) entirely natively `for i in {1..65535}; do (echo > /dev/tcp/192.168.1.1/$i) >/dev/null 2>&i && echo &i is open; done`
 		- The above bash script will take a long time.
+- **Proxy Tools:**
+	- When using a proxy, open a port on our own attacking machine which linked to the compromised server, giving us access to the target network (a tunnel).
+	- **Proxychains:**
+		- Command line tool which is activated by prepending the command `proxychains` to other commands.
+		- Can often slow down a connection, performing an nmap scan through it is hellish. Ideally use static tools where possible, and route traffic through Proxychains only when required.
+		- For example, to proxy `netcat` through a proxy, you could use the command `proxychains nc <ip> <port>`.
+		- The proxy port wasn't specified in the above command, because Proxychains reads its options from a config file. The master config file is located at `/etc/proxychains.conf`.
+		- The locations in order where Proxychains will look:
+			- The current directory `/etc/proxychains.conf`
+			- `~/.proxychains/proxychains.conf`
+			- `/etc/proxychains.conf`
+		- In the configuration file, the `proxy_dns` option could cause an nmap scan to hang and crash.
+		- Can only use TCP scans, no UDP, or SYN scans. ICMP echo packets will also not work, so use `-Pn`.
+		- It will be slow, try to only use Nmap through a proxy when using the NSE (i.e. use a static binary to see where the open ports/hosts are before proxying a local copy of nmap to use the scripts library).
+	- **FoxyProxy:**
+		- When accessing a web application through a proxy, FoxyProxy is used.
+		- Commonly used to manage Burpsuite and ZAP proxy quickly and easily, but can be used alongside other tools.
