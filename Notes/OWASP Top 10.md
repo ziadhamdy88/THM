@@ -140,6 +140,13 @@
 		- A segmented application architecture provides effective and secure separation between components or tenants, with segmentation, containerization, or cloud security groups (ACLs).
 		- Disabling directory listing on servers.
 - ## Components with Known Vulnerabilities
+	- When programs with well documented vulnerabilities are being used.
+	- Finding the versions of the program/technology and searching for that found version on Exploit-db to get the vulnerability.
+	- **Remediations:**
+		- A patch management process in place.
+		- Remove unused dependencies, unnecessary features, components, files, and documentation.
+		- Continuously inventory the versions of both client-side and server-side components.
+		- Continuously monitor sources like Common Vulnerability and Exposure (CVE) and National Vulnerability Database (NVD) for vulnerabilities in the components.
 - ## Broken Authentication (Identification and Authentication Failures)
 	- Allow access to other users' accounts which would allow the attacker to access sensitive data.
 	- **Types:**
