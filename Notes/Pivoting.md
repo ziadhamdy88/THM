@@ -12,7 +12,7 @@
 - Choosing a style of pivoting entirely depends on the layout of the network. So after gaining access, further enumeration is required.
 - Drawing a layout of the network as we enumerate is essential.
 - **NOTE:** a general rule, if you have multiple possible entry-points, try to use Linux/Unix target when possible, as they tend to be easier to pivot from. An outward facing Linux web server is absolutely ideal.
-- **Enumeration**
+- **Enumeration:**
 	- The more we know about the target, the more options we have available to us.
 	- **Possible ways**:
 		- Using material found on the machine like hosts file and ARP cache.
@@ -56,4 +56,21 @@
 		- It will be slow, try to only use Nmap through a proxy when using the NSE (i.e. use a static binary to see where the open ports/hosts are before proxying a local copy of nmap to use the scripts library).
 	- **FoxyProxy:**
 		- When accessing a web application through a proxy, FoxyProxy is used.
-		- Commonly used to manage Burpsuite and ZAP proxy quickly and easily, but can be used alongside other tools.
+			- Commonly used to manage Burpsuite and ZAP proxy quickly and easily, but can be used alongside other tools.
+- **SSH Tunneling/Port Forwarding:**
+	- **OpenSSH:**
+		- **Forward Connections:**
+			- Creating a forward (or local) SSH tunnel can be done from attacking machine when we have SSH access to the target. This technique is much more commonly used against Unix hosts.
+			- Linux servers commonly have SSH active and open.
+			- Microsoft has their own implementation of OpenSSH server, native to Windows.
+			- Two ways to create a forward connection:
+				- **Port forwarding:**
+					- Accomplished with `-L` switch, which creates a link to a Local port.
+					- For example if we had SSH access to 172.16.0.5 and there is a web server running on 172.16.0.10, we could use `ssh -L 8000:172.16.0.10:80 user@172.16.0.5 -fN` to create a link to the server on `172.16.0.10`.
+						- We could then access the website on `172.16.0.10` (through `172.16.0.5`) by navigating to port `8000` on our own attacking machine. For example, by entering `localhost:8000` into a web browser.
+							- Using this technique we have effectively created a tunnel between port `80` on the target server, and port `8000` on our own box.
+							- Note, its best practice to use a high port, for the local connection. This way all low ports are still open for their correct use, if we wanted to start our own web server to serve an exploit to a target, also means that we don't need to use `sudo` to create the connection.
+							- `-fN` combined switch does two things, `-f` backgrounds the shell immediately so that we have our own terminal back, `-N` tells SSH that it doesn't need to execute any commands -- only set up the connection.
+				- **Proxies:**
+					- Made using the `-D` switch, for example `-D 1337`, this will open up port `1337` on your attacking box
+				- Creating a proxy
