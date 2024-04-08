@@ -1,3 +1,4 @@
+# Linux Privilege Escalation
 - ## Enumeration Commands
 	- `hostname` returns the host name of the target.
 	- `uname -a` returns information about the kernel.
