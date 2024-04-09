@@ -1,0 +1,31 @@
+# Passive Reconnaissance
+- Gathering of information about the target without directly communicating with it.
+- `whois <domain-name>`
+- Nslookup:
+	- `nslookup -type=A <domain-name>` DNS A records.
+	- `nslookup -type=MX <domain-name> @<dns-server>` Mail exchange records at a certain DNS server.
+	- `nslookup -type=TXT <domain-name>` DNS TXT records.
+- `dig <domain-name> A` 
+- `dig <domain-name> @<dns-server> TXT`
+- DNSDumpster
+- Shodan.io
+# Active Reconnaissance
+- Gathering information by have some sort of contact with the target, a phone call, visiting the target, checking the website, or checking if their firewall has an SSH port open.
+- ## Web Browser
+	- Developer tools.
+	- FoxyProxy.
+	- User-Agent Switcher and Manager gives you the ability to pretend to be accessing the webpage from a different operating system or different browser. You can pretend to be using a mobile browser when you're using a PC browser.
+	- Wappalyzer provides insights about the technologies used on the visited websites.
+- `ping -c <number-of-packets> <ip/hostname>`
+- `traceroute <ip/hostname>`
+	- Modify the TTL in the IP header to reveal only certain amounts of routers' IP.
+- ## Telnet
+	- Teletype Network protocol was developed to communicate with a remote server via CLI.
+	- Default port is 23.
+	- Telnet sends all data, including usernames and passwords in clear text.
+	- Telnet client relies on the TCP protocol, Telnet can be used to connect to any service and grab its banner.
+	- `telnet <ip> <port>`.
+	- Can connect to any service that uses TCP and exchange a few messages unless it uses encryption.
+	- Example:
+		`telnet <ip> <port>`
+		`GET / HTTP/1.1`
