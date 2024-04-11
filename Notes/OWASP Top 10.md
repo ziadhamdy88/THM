@@ -192,4 +192,3 @@
 		- Common payloads, for example detecting the use of XSS payloads.
 	- Just detecting suspicious activity isn't helpful, this suspicious activity needs to be rated according to the impact level.
 - ## Server-Side Request Forgery (SSRF)
- 
