@@ -29,3 +29,13 @@
 	- Example:
 		`telnet <ip> <port>`
 		`GET / HTTP/1.1`
+- ## Netcat
+	- Can function as a client that connects to a listening port, and can act as a server that listens on ports.
+	- Supports both TCP and UDP protocols.
+	- Connect to a server using `nc <ip> <port>`, similar to `telnet <ip> <port>`.
+	- On the server side `nc -lvnp <port>`
+		- `-l` listen mode
+		- `-v` verbose output
+		- `-n` numeric only, no resolution of hostnames via DNS
+		- `-p` specify the port
+	- On the client side `nc <ip> <port>`.
