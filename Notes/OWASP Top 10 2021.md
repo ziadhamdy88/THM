@@ -174,6 +174,15 @@
 	- Serialization is the process of converting objects used in programming into simpler, compatible formatting for transmitting between systems or networks for further processing and storage.
 	- Deserialization is the process of converting serialized information into their complex form, i.e an object that the application will understand.
 	- Exploiting cookies, decoding them, depending on the application it might be command injectable but would require the command to be encoded first.
+	- Data Integrity Failures could be resolved by using a token implementation that deals with all the cryptography to provide proof of integrity, like JWT (JSON Web Tokens).
+	- **JWT**
+		- Composed of three parts:
+			- Header: contains metadata indicating that this is a JWT and the signing algorithm (HS256).
+			- Payload: contains the key-value pairs with the data that the web application wants the client to store.
+			- Signature: similar to a hash, verifies the payload's integrity. Involves the use of a secret key held by the server only.
+		- Base64 encoded plaintext.
+		- The None Algorithm:
+			- A vulnerability of the implementation of JWT in some libraries that allowed the attackers to bypass the signature validation by changing the header section of the taken so that the algorithm header would contain "none", and remove the signature part.
 - ## Insufficient Logging and Monitoring
 	- When web applications are set up, every action performed by the user should be logged. In the event of an incident, the attacker's actions can be traced. Once their actions are traced, their risk and impact can be determined.
 	- Could cause regulatory damage, if an attacker has gained access to personally identifiable user information, and there is no record of this, not only are users of the applications are affected, but the application owners may be subject to fines or more severe actions depending on regulations.
