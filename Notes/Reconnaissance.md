@@ -39,3 +39,42 @@
 		- `-n` numeric only, no resolution of hostnames via DNS
 		- `-p` specify the port
 	- On the client side `nc <ip> <port>`.
+- ## Nmap
+	- ### Host Discovery
+		- #### ARP
+			- Only works when the target/s are on the same network, the MAC address is necessary for the link-layer header.
+			- Discover hosts without port scanning using `nmap -sn <targets>`.
+			- ARP scan using `nmap -PR -sn <targets>`.
+			- **arp-scan**
+				- A tool built around ARP queries, and provides many options to customize the scan.
+				- `arp-scan --localnet` or `arp-scan -l` sends ARP queries to all valid IP addresses on the local network.
+				- If the system has multiple interfaces, use `sudo arp-scan -I eth0 -l` to specify the interface.
+		- #### ICMP
+			- Many firewalls block ICMP echo by default.
+			- `nmap -PE -sn <targets>` to use ICMP echo requests to discover live hosts.
+			- Use ICMP Timestamp `nmap -PP -sn <targets>`, or ICMP Address Mask `nmap -PM -sn <targets>` instead if the echo requests are being blocked 
+			- These two types can also be blocked, so switch between them to check.
+		- #### TCP SYN Ping
+			- Send a packet with the SYN (synchronize) flag set, open ports reply with SYN/ACK and closed ports reply with RST.
+			- `nmap -PS21 -sn <targets>` to use TCP SYN ping on port 21, or a range of ports `-PS21-25`, don't have to specify a port and it defaults to TCP port 80 `-PS`.
+			- Privileged users will not complete the 3 way handshake while unprivileged users will need to complete it.
+		- #### TCP ACK Ping
+			- Send a packet with the ACK flag set. Must be privileged user, if not nmap will attempt a 3-way handshake.
+			- `nmap -PA -sn <targets>` similar to the TCP SYN ping in terms of port specifications.
+			- Expected to get an RST reply back since the sent request isn't part of any ongoing communication.
+			- Systems that don't reply at all are offline.
+		- #### UDP Ping
+			- Sending a packet to an open port is not expected to lead to any reply.
+			- If a UDP packet is sent to a closed UDP port, we expect to get an "ICMP port unreachable" packet, this indicates that the target is up.
+			- `nmap -PU -sn <targets>` to send UDP scan.
+			- Nmap uses uncommon UDP ports to trigger an ICMP destination unreachable (port unreachable) error.
+		- #### Masscan
+			- Uses a similar approach to the UDP Ping scan, but it is quite aggressive with the rate of packets it generates.
+			- `masscan <targets> -p443` to specify port 443.
+			- `masscan <targets> -p20-25` to specify range of ports
+			- `masscan <targets> --top-ports 100` to specify top 100 ports.
+		- #### Reverse-DNS Lookup
+			- Nmap by default uses reverse-DNS online hosts, because hostnames can reveal a lot.
+			- If you don't want to send DNS queries use `-n` to skip the step.
+			- Nmap will only look up online hosts, use option `-R` to query DNS server for offline hosts as well.
+			- Use `--dns-servers <DNS-server>` to specify the DNS server to query.
