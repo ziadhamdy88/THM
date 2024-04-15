@@ -9,5 +9,6 @@
   - [OhSINT](https://tryhackme.com/r/room/ohsint) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/OhSINT#osint)
   - [Pickle Rick](https://tryhackme.com/r/room/picklerick) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/Pickle-rick#enumeration)
   - [Blueprint](https://tryhackme.com/r/room/blueprint) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/Blueprint#enumeration)
+  - [OWASP Juice Shop](https://tryhackme.com/r/room/owaspjuiceshop) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/OWASP-Juice-Shop#enumeration)
 ## Rooms in the process:
   - [Wreath](https://tryhackme.com/r/room/wreath)
