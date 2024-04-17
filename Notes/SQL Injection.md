@@ -1,0 +1,43 @@
+- Occurs when unsanitized user input is used inside of a query without the use of parameterized queries.
+- ### Types:
+	- #### In-Band:
+		- Refers to the same method of communication being used to exploit the vulnerability and also receive the result. Discovering an SQLi vulnerability on a page and extracting the data from database to the same page.
+		- **Error-Based SQLi:**
+			- Error message from the server is directly printed to the browser.
+			- Used to enumerate a whole database.
+			- Using single apostrophes `'` or quotation marks `"`.
+			- 
+		- **Union-Based SQLi:**
+			- Utilizes the SQL UNION operator along side the SELECT statement to return additional results to the page.
+			- Used to extract large amounts of data.
+			- `UNION SELECT NULL` and keep adding nulls till the column count is correct.
+			- Get database name by using `UNION SELECT NULL,NULL,database()`.
+			- Get table names by using `UNION SELECT NULL,NULL,group_concat(table_name) FROM information_schema.tables WHERE table_schema = '<database-name>`.
+	- #### Blind:
+		- When we get little to no feedback to confirm whether the injected queries were successful or not.
+		- **Authentication Bypass:**
+			- Bypassing login forms.
+			- Using an always truthy value `' OR 1=1;--`
+		- **Boolean-Based:**
+			- Refers to the response we receive from injection attempts that can only have two outcomes, true/false, 1/0, yes/no, etc.
+			- `' UNION SELECT 1,2,3 WHERE database() LIKE 'a%'` and keep changing the character and adding more characters till the entire name is found.
+		- **Time-Based:**
+			- The indicator is the time the query takes to complete.
+			- Using built-in tools like `SLEEP()` with the `UNION` statement.
+			- `' UNION SELECT SLEEP(5);--` then `' UNION SELECT SLEEP(5),2;--` and keep adding columns to get the correct column number, if there was no delay, the query was unsuccessful.
+			- `' UNION SELECT SLEEP(5),2 WHERE database() LIKE 'a%';--`.
+	- #### Out-of-Band:
+		- Depends on specific features being enabled on the database server or the web application's business logic, which makes some kind of external network call based on the results from an SQL query.
+		- Have 2 communication channels, one to launch the attack and the other to gather the results, for example, the attack channel could be a web request, and the data gathering channel could be monitoring HTTP/DNS requests made to a service you control.
+		- Example:
+			- Attacker makes a request to a website vulnerable to SQL injection with a payload.
+			- The website makes an SQL query to the database, which also passes the attacker's payload.
+			- The payload contains a request which forces an HTTP request back to the attacker's machine containing data from the database.
+- ### Remediations:
+	- #### Prepared Statements (with Parameterized Queries)
+		- The query is written first then the inputs are added as parameters afterwards. Makes the database able to distinguish between the query and the data.
+	- #### Input Validation
+		- Employing an allow list that restricts input to only certain strings, or a string replacement method in the programming language can filter the characters you wish to allow or deny.
+	- #### Escaping User Input
+		- Allowing input with characters such as `'"$\` can cause SQL queries to break or even worse, being injectable.
+		- Escaping user input is the method of prepending `\` to these characters which then causes them to be parsed as a regular string and not a special character.
