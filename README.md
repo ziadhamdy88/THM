@@ -10,5 +10,6 @@
   - [Pickle Rick](https://tryhackme.com/r/room/picklerick) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/Pickle-rick#enumeration)
   - [Blueprint](https://tryhackme.com/r/room/blueprint) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/Blueprint#enumeration)
   - [OWASP Juice Shop](https://tryhackme.com/r/room/owaspjuiceshop) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/OWASP-Juice-Shop#enumeration)
+  - [SQL Injection](https://tryhackme.com/r/room/sqlinjectionlm) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/SQL-Injection#task-1)
 ## Rooms in the process:
   - [Wreath](https://tryhackme.com/r/room/wreath)
