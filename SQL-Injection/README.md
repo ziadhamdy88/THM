@@ -1,4 +1,3 @@
-
 ## *Task 1*
 >	- Structured Query Language
 ## *Task 2*
