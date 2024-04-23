@@ -11,5 +11,6 @@
   - [Blueprint](https://tryhackme.com/r/room/blueprint) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/Blueprint#enumeration)
   - [OWASP Juice Shop](https://tryhackme.com/r/room/owaspjuiceshop) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/OWASP-Juice-Shop#enumeration)
   - [SQL Injection](https://tryhackme.com/r/room/sqlinjectionlm) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/SQL-Injection#task-1)
+  - [Bricks Heist](https://tryhackme.com/r/room/tryhack3mbricksheist) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/TryHack3M-Bricks-Heist#enumeration)
 ## Rooms in the process:
   - [Wreath](https://tryhackme.com/r/room/wreath)
