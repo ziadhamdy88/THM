@@ -41,3 +41,11 @@
 	- #### Escaping User Input
 		- Allowing input with characters such as `'"$\` can cause SQL queries to break or even worse, being injectable.
 		- Escaping user input is the method of prepending `\` to these characters which then causes them to be parsed as a regular string and not a special character.
+- ## *NOTE*
+	- Embed shell commands using the library `lib_mysqludf_sys.so`.
+		- `SELECT sys_eval('whoami');`
+		- `SELECT sys_exec('echo "hello" > /var/lib/mysql/test.txt');`
+	- Commenting
+		- `--`
+		- `-- //`
+	- 
