@@ -1,4 +1,5 @@
 # OWASP Top 10 2021
+
 - ## Broken Access Control
 	- Regular visitor accessing protected pages that should only be accessible to admins.
 	- Leads to accessing unauthorized functionality and being able to view sensitive information.
@@ -39,6 +40,10 @@
 	- **Types:**
 		- **SQL Injection (SQLi):**
 			- Input passed to SQL queries.
+			- **Types:**
+				- In-Band
+				- Blind
+				- Out-of-Band
 		- **Command Injection:**
 			- Input passed to system commands.
 			- When server-side code like PHP in a web application makes a system call on the hosting machine.

@@ -1,9 +1,9 @@
-# Linux Privilege Escalation
 - ## Enumeration Commands
 	- `hostname` returns the host name of the target.
 	- `uname -a` returns information about the kernel.
 	- `cat /proc/version` returns information about system processes.
 	- `cat /etc/issue` returns information about the system.
+	- `cat /etc/*release` for system information.
 	- `ps` returns running processes.
 		- `ps -A`: returns all running processes.
 		- `ps axjf`: returns the process tree.
