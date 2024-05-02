@@ -13,5 +13,6 @@
   - [SQL Injection](https://tryhackme.com/r/room/sqlinjectionlm) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/SQL-Injection#task-1)
   - [TryHack3M: Bricks Heist](https://tryhackme.com/r/room/tryhack3mbricksheist) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/TryHack3M-Bricks-Heist#enumeration)
   - [TryHack3M: Sch3Ma D3Mon](https://tryhackme.com/r/room/sch3mad3mont) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/TryHack3M-Sch3Ma-D3Mon#wireshark-task-1)
+  - [Red](https://tryhackme.com/r/room/redisl33t) &rarr; [writeup](https://github.com/ziadhamdy88/THM/tree/main/Red#enumeration)
 ## Rooms in the process:
   - [Wreath](https://tryhackme.com/r/room/wreath)
