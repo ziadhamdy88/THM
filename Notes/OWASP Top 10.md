@@ -16,6 +16,16 @@
 		- CORS misconfiguration allows API access from unauthorized/untrusted origins.
 	- **IDOR (Insecure Direct Object Reference):**
 		- The act of exploiting a misconfiguration in the way user input is handled, to access resources you wouldn't ordinarily be able to access. IDOR is a type of access control vulnerability.
+		- The user input can be found in three places:
+			- Query Component
+				- Data passed in the URL like `/profile?id=1`, in this example, the query component is `id=1`.
+				- By changing the id value to another, we could possibly view another user's data.
+			- Post Variable
+				- Examining the contents of forms on a website could reveal fields that are vulnerable to IDOR.
+				- Hidden fields that are sent with the form data.
+			- Cookies
+				- One of the uses of cookies is saving the logged in session, which would involve sending a session id that should be a long random string.
+				- Some misconfigurations, like saving the user id in a cookie, could lead to a possible exploit to view other users' data.
 	-  **Remediations:**
 		- Access control is only effective in trusted server-side code or server-less API, where the attacker cannot modify the access control check or metadata.
 		- Except for public resources, deny by default.
