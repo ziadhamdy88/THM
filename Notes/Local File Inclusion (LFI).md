@@ -12,6 +12,14 @@
 		- `require`
 		- `include_once`
 		- `require_once`
+	- **Steps**
+		- Find an entry point that could be via GET, POST, COOKIE, or HTTP header values.
+		- Enter a valid input to see how the web server behaves.
+		- Enter invalid inputs, including special characters and common file names.
+		- Don't always trust what you supply in input forms is what you intended! Use either a browser address bar or a tool such as Burpsuite.
+		- Look for errors while entering invalid input to disclose the current path of the web application; if there are no errors, then trial and error might be your best option.
+		- Understand the input validation and if there are any filters.
+		- Try the inject a valid entry to read sensitive files
 - Files that are useful to read after finding the vulnerability
 	- `/etc/issue`
 	- `/etc/passwd`
@@ -29,6 +37,7 @@
 	- Using `..` to get out of the current directory and traverse the other directories for data, like `?file=../../../../../../../etc/passwd`.
 	- Adding a Null character like `?file=../../../../../../etc/passwd%00`.
 	- Bypassing filter using `....//` like `?file=....//....//....//etc/passwd`.
+	- Bypassing keyword filter using `?file=../../../../etc/passwd/.`.
 	- URL encoding techniques like double encoding `?file=%252e%252e%252fetc%252fpasswd`.
 	- Depending on the web application type, some wrappers can be used like PHP Filter and PHP DATA, like `?file=php://filter/resource=/etc/passwd`.
 	- **PHP Filter**
