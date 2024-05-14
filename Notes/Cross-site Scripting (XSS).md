@@ -56,6 +56,8 @@
 				- Use multi-layered defense; use server-side validation instead of solely relying on client-side validation.
 			- **PHP, JavaScript, Python, and ASP.NET**
 				- Same as reflected XSS.
+		- Blind XSS is similar to a stored XSS in that our payload gets stored on the website for another user to view, but in this instance, we can't see the payload working or be able to test it against ourselves first.
+		- [XSS Hunter Express](https://github.com/mandatoryprogrammer/xsshunter-express) a popular tool for Blind XSS attacks.
 	- #### DOM-based XSS
 		- Relies on the vulnerabilities within the Document Object Model (DOM) to manipulate existing page elements without needing to be reflected or stored on the server.
 		- Least common type.
