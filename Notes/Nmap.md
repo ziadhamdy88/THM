@@ -129,3 +129,37 @@
 	- `-T4` is often used in CTFs and `-T1` is often used in real engagements where stealth is more important.
 	- Control packet rate using `--min-rate <number>` and `--max-rate <number>`.
 	- Control probing parallelization using `--min-parallelism <num-probes>` and `--max-parallelism <num-probes>`.
+- ## *Service Detection*
+	- `nmap -sV <ip>`
+	- Control intensity using `--version-intensity <level>`.
+		- 0 is the lightest and 9 the most complete.
+	- `-sV --version-light` has intensity of 2, and `-sV --version-all` has intensity of 9.
+	- Using `-sV` forces `nmap` to complete the TCP 3-way handshake and establish connection, `-sS` isn't possible with `-sV`.
+- ## *OS Detection and Traceroute*
+	- `nmap -sS -O <ip>` for OS scan.
+	- It might be inaccurate, it requires at least 1 open port and 1 closed port on the target to make a reliable guess.
+	- The guest OS fingerprints might get distorted due to the rising use of virtualization and similar technologies.
+	- `nmap -sS --traceroute <ip>`.
+	- Nmap's `traceroute` works a bit differently than Linux's and MS' command, Linux works by starting first with a packet of low TTL and then keeps increasing, while Nmap's start with a packet with high TTL and then keeps decreasing.
+- ## *Scripting Engine*
+	- Use default scripts using `--script=default` or `-sC`.
+	- Use authentication related scripts using `--script=auth`.
+	- Discover hosts by sending broadcast messages using `--script=broadcast`.
+	- Perform brute-force password auditing against logins using `--script=brute`.
+	- Retrieve accessible information, such as database tables and DNS names using `--script=discovery`.
+	- Detect DOS vulnerability using `--script=dos`.
+	- Attempt to exploit various vulnerable services using `--script=exploit`.
+	- Checks using a third-party service, such as `Geoplugin` and `Virustotal` using `--script=external`.
+	- Launch fuzzing attacks using `--script=fuzzer`.
+	- Use intrusive scripts such as brute-force attacks and exploitation using `--script=intrusive`.
+	- Scan for backdoors using `--script=malware`.
+	- Use safe scripts that won't crash the target using `--script=safe`.
+	- Retrieve service versions using `--script=version`.
+	- Check for vulnerabilities or exploit vulnerable services using `--script=vuln`.
+	- Specify script name to use using `--script <script-name>` like `--script "ftp*"`.
+	- **NOTE: Search for the name of the file that contains a specific string in the scripts using `grep -l <string> /usr/share/nmap/scripts/*`**.
+- ## *Saving Output*
+	- Normal format which is what gets printer to the screen using `-oN <filename>`.
+	- Grepable format, which is useful for filtering the output for specific keywords, using `-oG <filename>`.
+	- XML format, used to process the output in other programs, using `-oX <filename>`.
+	- All formats using `-oA <filename>` (normal, grepable, XML).
