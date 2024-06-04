@@ -43,6 +43,9 @@
 		- `find / -perm -o w -type d 2>/dev/null` searches for world-writable directories.
 		- `find / -perm -o x -type d 2>/dev/null` searches for world-executable directories.
 		- `find / -name perl*` or `find / -name python*` or `find / -name gcc*` searches for development tools and supported languages.
+		- `find / -uid <uid> -type f -ls 2>/dev/null | grep -v "/proc"` to get the files owned by the user, get `uid` from `/etc/passwd`.
+		- `find / -name "*<username>*" -type f -ls 2>/dev/null` to get the files with the username in it.
+		- `grep -i password -r .` to get the files with the word password in them.
 		- #### **IMPORTANT**
 			- `find / -perm -u=s -type f 2>/dev/null` searches for files with `SUID` bit set which allows us to run the file with the privilege of the file owner.
 	- ### Tools
