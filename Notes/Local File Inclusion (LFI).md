@@ -46,3 +46,10 @@
 		- Used to include raw plain text or `base64` encoded data. It is used to include images on the current page.
 		- Encode the data using `echo <data> | base64` then use the encoded data inside the parameter `?file=data://text/plain;base64,<data>`.
 		- Using this technique, we can encode PHP code and include it into PHP data wrapper.
+- ## Steps
+	- After checking for the vulnerability, check `/proc/self/environ`.
+	- Check `/proc/self/cmdline`.
+	- From the output of the above, get the application file.
+	- Get the open ports using `/proc/net/tcp`.
+	- Fuzz the processes using a script `/proc/<value>/cmdline`, depending on the output from the above finding, we might not need to convert into hex like in the script. ![](proc-fuzz.png)
+	- 
