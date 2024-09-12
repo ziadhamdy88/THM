@@ -1,0 +1,76 @@
+## *Pivoting*
+- The art of using access obtained over one machine to exploit another machine deeper in the network.
+- Attackers can gain initial access on a remote network, and use it to access other machines in the network, that would not otherwise be accessible.
+- **Methods:**
+	- **Tunneling/Proxying:**
+		- Creating a proxy type connection through a compromised machine in order to route all desired traffic into the targeted network.
+		- This could potentially also be tunnelled inside another protocol (e.g SSH tunnelling), which can be useful for evading a basic IDS or firewall.
+		- Good if we want to redirect lots of different kinds of traffic into our target network, for example, with an nmap scan, or to access multiple ports on multiple different machines.
+	- **Port Forwarding:**
+		- Creating a connection between a local port and a single port on a target, via a compromised host.
+		- Tends to be faster and more reliable, but only allows us to access a single port (or a small range) on a target device.
+- Choosing a style of pivoting entirely depends on the layout of the network. So after gaining access, further enumeration is required.
+- Drawing a layout of the network as we enumerate is essential.
+- **NOTE:** a general rule, if you have multiple possible entry-points, try to use Linux/Unix target when possible, as they tend to be easier to pivot from. An outward facing Linux web server is absolutely ideal.
+- **Enumeration:**
+	- The more we know about the target, the more options we have available to us.
+	- **Possible ways**:
+		- Using material found on the machine like hosts file and ARP cache.
+		- Using pre-installed tools.
+		- Using statically compiled tools.
+		- Using scripting techniques.
+		- Using local tools through a proxy.
+	- Using local tools through a proxy is incredibly slow.
+	- Using `arp -a` in Windows or Linux to check the ARP cache of the machine -- this will show any IP addresses of hosts that the target has interacted with recently.
+	- Static mappings can be found in `/etc/hosts` or `C:\Windows\System32\drivers\etc\hosts` on Linux and Windows respectively.
+	- `/etc/resolv.conf` on Linux may also identify any local DNS servers, which may be misconfigured to allow something like a DNS zone transfer attack.
+	- On Windows the easiest way to check the DNS servers for an interface is with `ipconfig /all`. Linux has an equivalent command as an alternative to reading the `resolve.conf` file `nmcli dev show`.
+	- Ideally we want to take advantage of pre-installed tools on the system, for example, sometime Linux systems have nmap installed by default. This is an example of Living of the Land (LotL) -- a good way to minimize risk.
+	- Failing that, it's very easy to transfer a static binary, or put together a simple ping-sweep tool in Bash.
+	- If there are no useful tools installed on the system, and the rudimentary scripts are not working, then it's possible to get static copies of many tools.
+	- These are versions of the tools that are compiled in such a way as to not require any dependencies from the box, in other words, they could theoretically work on any target.
+	- Statically compiled copies for different operating systems can be found [here](https://github.com/andrew-d/static-binaries) and [here](https://github.com/ernw/)
+	- **Scanning through a proxy:**
+		- Should be a last resort, as scanning through something like proxy chains is very slow, and often limited (you can not scan a UDP port from a TCP proxy for example).
+		- The one exception to this rule is when using the Nmap Scripting Engine (NSE), as the scripts library doesn't come with statically compiled version of the tool. As such, you can use a static copy of Nmap to sweep the network and find hosts with open ports, then use your local copy of Nmap through a proxy specifically against the found ports.
+	- **Living of the Land (LotL):**
+		- Ideally a tool like Nmap will already be installed on the target; however, this is not always the case. If this happens, it's worth looking into whether you can use an installed shell to perform a sweep of the network. For example, the following Bash one-liner would perform a full ping sweep of the `192.168.1.x` network `for i in {1..255}; do (ping -c 1 192.168.1.${i} | grep "bytes from" &); done`
+		- The equivalent of this command in PowerShell is unbearably slow.
+		- May encounter hosts which have firewalls blocking ICMP pings. This is likely to be less of a problem when pivoting, however, as these firewalls (by default) often only apply to external traffic, meaning that anything sent through a compromised host on the network should be safe.
+		- If you suspect that a host is active but is blocking ICMP ping requests, you could also check some common ports using a tool like `netcat`.
+		- Port scanning in bash can be done (ideally) entirely natively `for i in {1..65535}; do (echo > /dev/tcp/192.168.1.1/$i) >/dev/null 2>&i && echo &i is open; done`
+		- The above bash script will take a long time.
+- **Proxy Tools:**
+	- When using a proxy, open a port on our own attacking machine which linked to the compromised server, giving us access to the target network (a tunnel).
+	- **Proxychains:**
+		- Command line tool which is activated by prepending the command `proxychains` to other commands.
+		- Can often slow down a connection, performing an nmap scan through it is hellish. Ideally use static tools where possible, and route traffic through Proxychains only when required.
+		- For example, to proxy `netcat` through a proxy, you could use the command `proxychains nc <ip> <port>`.
+		- The proxy port wasn't specified in the above command, because Proxychains reads its options from a config file. The master config file is located at `/etc/proxychains.conf`.
+		- The locations in order where Proxychains will look:
+			- The current directory `/etc/proxychains.conf`
+			- `~/.proxychains/proxychains.conf`
+			- `/etc/proxychains.conf`
+		- In the configuration file, the `proxy_dns` option could cause an nmap scan to hang and crash.
+		- Can only use TCP scans, no UDP, or SYN scans. ICMP echo packets will also not work, so use `-Pn`.
+		- It will be slow, try to only use Nmap through a proxy when using the NSE (i.e. use a static binary to see where the open ports/hosts are before proxying a local copy of nmap to use the scripts library).
+	- **FoxyProxy:**
+		- When accessing a web application through a proxy, FoxyProxy is used.
+			- Commonly used to manage Burpsuite and ZAP proxy quickly and easily, but can be used alongside other tools.
+- **SSH Tunneling/Port Forwarding:**
+	- **OpenSSH:**
+		- **Forward Connections:**
+			- Creating a forward (or local) SSH tunnel can be done from attacking machine when we have SSH access to the target. This technique is much more commonly used against Unix hosts.
+			- Linux servers commonly have SSH active and open.
+			- Microsoft has their own implementation of OpenSSH server, native to Windows.
+			- Two ways to create a forward connection:
+				- **Port forwarding:**
+					- Accomplished with `-L` switch, which creates a link to a Local port.
+					- For example if we had SSH access to 172.16.0.5 and there is a web server running on 172.16.0.10, we could use `ssh -L 8000:172.16.0.10:80 user@172.16.0.5 -fN` to create a link to the server on `172.16.0.10`.
+						- We could then access the website on `172.16.0.10` (through `172.16.0.5`) by navigating to port `8000` on our own attacking machine. For example, by entering `localhost:8000` into a web browser.
+							- Using this technique we have effectively created a tunnel between port `80` on the target server, and port `8000` on our own box.
+							- Note, its best practice to use a high port, for the local connection. This way all low ports are still open for their correct use, if we wanted to start our own web server to serve an exploit to a target, also means that we don't need to use `sudo` to create the connection.
+							- `-fN` combined switch does two things, `-f` backgrounds the shell immediately so that we have our own terminal back, `-N` tells SSH that it doesn't need to execute any commands -- only set up the connection.
+				- **Proxies:**
+					- Made using the `-D` switch, for example `-D 1337`, this will open up port `1337` on your attacking box
+				- Creating a proxy

