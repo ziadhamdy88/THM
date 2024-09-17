@@ -16,17 +16,31 @@
 	 - `$where` matches records based on JavaScript condition
 	 - `$exists` matches records that have a certain field
 	 - `$regex` matches records that satisfy certain regular expression
-- Connect to MongoDB using `mongo`.
-- Use `show databases` to list the available databases.
-- Connect/Create a database using `use <dbname>`.
-- Create collections using `db.createCollection("<collection_name>")` function.
-- Show collections using `db.getCollectionNames()` function.
-- Create a document within a collection called `users` using `db.users.insert({id:"1", username:"admin", email:"admin@admin.com", password:"password123"})`.
-- List documents within a collection using `db.users.find()`.
-- Update a document with `id=2` using `db.users.update({id:"2"}, {$set: {username:"tryhackme"}})`.
-- Remove a document using `db.users.remove({'id':'2'})`.
-- Drop a collection using `db.users.drop()`.
+ - ## Types
+	- #### Syntax Injection
+		- This is similar to SQL injection, where we have the ability to break out of the query and inject our own payload.
+		- The key difference to SQL injection is the syntax used to perform the injection attack.
+	- #### Operator Injection
+		- Even if we can't break out of the query, we could potentially inject a NoSQL query operator that manipulates the query's behavior, allowing us to stage attacks such as authentication bypasses.
+		- The syntax for a login bypass
+			- The login page sends a POST Request with the `user` and `password` parameters.
+			- The parameters should be `['username' = ['$ne'=>'xxxx'], 'password'=>['$ne'=>'yyyy']]`.
+			- This would return any document where the username isn't equal to `xxxx` and the password not equal to `yyyy`.
+			- To pass an array as part of a POST HTTP Request, use this POST Request Body notation: `user[$ne]=xxxx&pass[$ne]=yyyy`.
+- ## Syntax
+	- Connect to MongoDB using `mongo`.
+	- Use `show databases` to list the available databases.
+	- Connect/Create a database using `use <dbname>`.
+	- Create collections using `db.createCollection("<collection_name>")` function.
+	- Show collections using `db.getCollectionNames()` function.
+	- Create a document within a collection called `users` using `db.users.insert({id:"1", username:"admin", email:"admin@admin.com", password:"password123"})`.
+	- List documents within a collection using `db.users.find()`.
+	- Update a document with `id=2` using `db.users.update({id:"2"}, {$set: {username:"tryhackme"}})`.
+	- Remove a document using `db.users.remove({'id':'2'})`.
+	- Drop a collection using `db.users.drop()`.
 - ## NoSQL Injection
+	- Bypassing NoSQL filters may look impossible to do since they rely on creating a structured array. Unlike SQL queries, NoSQL queries require nested associative arrays. From an attacker's point of view, this means that to inject NoSQL, one must be able to inject arrays into the application.
+	- Many server-side programming languages allow passing array variables by using a special syntax on the query string of an HTTP Request.
 	- #### Bypassing login pages
 		- Usually, web applications use `db.users.find({query})` or `db.users.findOne(query)` functions where the `query` is `JSON` data that's sent via the application `{"username":"admin", "password":"password123"}`.
 		- When correct credentials are provided, a document is returned, while a `null` reply is received when providing the wrong credentials or when nothing matches.
